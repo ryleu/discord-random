@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import json
 import random
+from asyncio import sleep
 
 with open("token.json","r") as file:
     token = json.loads(file.read())["token"]
@@ -36,13 +37,14 @@ class Card():
         return "{} of {}s".format(self.valChar,self.suit)
 
 class Deck():
-    def __init__(self,shuffled = True,*,suits = ["heart","club","diamond","spade"],values = range(1,14)):
+    def __init__(self,shuffled = True):
         self.cards = []
+        self.shuffled = shuffled
+        self.locked = 0
+    def populate(self,*,suits = ["heart","club","diamond","spade"],values = range(1,14)):
         for i in suits:
             for j in values:
                 self.cards.append(Card(i,j))
-        self.shuffled = shuffled
-        self.locked = 0
     def draw(self,amount=1):
         drawn = []
         for i in range(amount):
@@ -55,30 +57,54 @@ class Deck():
             except IndexError:
                 return drawn
         return drawn
+    @classmethod
+    def full(cls,shuffled = True):
+        d = cls(shuffled = shuffled)
+        d.populate()
+        return d
+    @classmethod
+    def locked(cls):
+        d = cls()
+        d.locked = -1
+        return d
+
 
 @me.command()
 async def draw(ctx):
     deck = me.decks.get(ctx.channel.id,None)
     if deck == None:
         return await ctx.send("There is no deck for this channel. Generate one with `!newdeck`")
-    elif deck.locked:
-        me.decks[ctx.channel.id].locked -= 1
-        return await ctx.send("The deck is currently locked. Wait for other commands to finish first ({}).".format(str(deck.locked)))
+    elif deck.locked <= 0:
+        await ctx.send("The deck is currently locked. Wait for other commands to finish first.")
+        await sleep(1)
+        if me.decks[ctx.channel.id].locked > 1:
+            me.decks[ctx.channel.id].locked -= 1
+        return
     elif deck.cards == []:
         return await ctx.send("There are no cards on this deck. Generate a new one with `!newdeck`")
 
-    me.decks[ctx.channel.id].locked = 3
-    card = deck.draw()[0]
+    me.decks[ctx.channel.id].locked = 1
+    cards = deck.draw()
+    if cards == []:
+        return await ctx.send("Something went wrong. Please try again.")
+    else:
+        card = cards[0]
     me.decks[ctx.channel.id] = deck
     me.decks[ctx.channel.id].locked = 0
 
-    await ctx.send("{} drew **{}**\n{}".format(ctx.author.mention,str(card),card.art))
+    await ctx.send("{} drew **{}**\n{}".format(ctx.author.mention,str(card),card.art),allowed_mentions = discord.AllowedMentions.none())
 
 @me.command()
 async def newdeck(ctx):
     if not ctx.author.permissions_in(ctx.channel).manage_messages:
         return await ctx.author.send("You can't do that without the `manage_messages` permission.")
-    me.decks[ctx.channel.id] = Deck()
+    d = me.decks.get(ctx.channel.id, None)
+    me.decks[ctx.channel.id] = Deck.locked()
+    if d == None:
+        me.decks[ctx.channel.id] = Deck.full()
+    else:
+        me.decks[ctx.channel.id].populate()
+
     await ctx.send("Successfully generated a new deck.")
 
 @me.command()
@@ -87,6 +113,15 @@ async def deck(ctx):
     if deck == None or deck.cards == []:
         return await ctx.send("The deck is empty.")
     await ctx.send("There are {} card(s) left.".format(str(len(deck.cards))))
+
+handle_errors = me.on_command_error
+
+@me.event
+async def on_command_error(ctx,err):
+    if type(err) == discord.ext.commands.errors.CommandNotFound:
+        return
+    await ctx.send("Something went wrong, please try again.")
+    await handle_errors(ctx,err)
 
 @me.event
 async def on_ready():
