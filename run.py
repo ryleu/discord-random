@@ -74,7 +74,7 @@ async def draw(ctx):
     deck = me.decks.get(ctx.channel.id,None)
     if deck == None:
         return await ctx.send("There is no deck for this channel. Generate one with `!newdeck`")
-    elif deck.locked <= 0:
+    elif deck.locked != 0:
         await ctx.send("The deck is currently locked. Wait for other commands to finish first.")
         await sleep(1)
         if me.decks[ctx.channel.id].locked > 1:
@@ -104,7 +104,7 @@ async def newdeck(ctx):
         me.decks[ctx.channel.id] = Deck.full()
     else:
         me.decks[ctx.channel.id].populate()
-
+    me.decks[ctx.channel.id].locked = 0
     await ctx.send("Successfully generated a new deck.")
 
 @me.command()
