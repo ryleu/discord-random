@@ -1,6 +1,19 @@
 from discord.ext import commands
 from d20 import roll
 from random import randint
+from discord import AllowedMentions
+
+def configure_bot(bot):
+    bot.allowed_mentions = AllowedMentions.none()
+    bot.command_prefix = commands.when_mentioned_or("?")
+
+    #handle_errors = me.on_command_error
+    @bot.event
+    async def on_command_error(ctx,err):
+        if type(err) == discord.ext.commands.errors.CommandNotFound:
+            return
+        await ctx.send(str(err))
+        #await handle_errors(ctx,err)
 
 class Card():
     def __init__(self,suit,value):
@@ -187,5 +200,6 @@ class DiceRolls(commands.Cog):
 cogs = [CardDeck,DiceRolls]
 
 def setup(bot):
+    configure_bot(bot)
     for i in cogs:
         bot.add_cog(i(bot))
