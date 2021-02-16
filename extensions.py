@@ -1,19 +1,11 @@
-from discord.ext import commands
+from discord.ext.commands import when_mentioned_or, command, Cog
 from d20 import roll
 from random import randint
-from discord import AllowedMentions
+from discord import AllowedMentions, DMChannel
 
 def configure_bot(bot):
     bot.allowed_mentions = AllowedMentions.none()
-    bot.command_prefix = commands.when_mentioned_or("?")
-
-    #handle_errors = me.on_command_error
-    @bot.event
-    async def on_command_error(ctx,err):
-        if type(err) == discord.ext.commands.errors.CommandNotFound:
-            return
-        await ctx.send(str(err))
-        #await handle_errors(ctx,err)
+    bot.command_prefix = when_mentioned_or("?")
 
 class Card():
     def __init__(self,suit,value):
@@ -74,7 +66,7 @@ class Deck():
         d.locked = -1
         return d
 
-class CardDeck(commands.Cog):
+class CardDeck(Cog):
     def __init__(self,bot):
         self.bot = bot
         try:
@@ -115,7 +107,7 @@ class CardDeck(commands.Cog):
 
         return ["{} drew **{}**\n{}".format(ctx.author.mention,str(card),card.art),True]
 
-    @commands.command()
+    @command()
     async def draw(self,ctx):
         """Draws a card from the server specific deck"""
         parsed = await self.parse_draw(ctx)
@@ -125,7 +117,7 @@ class CardDeck(commands.Cog):
             await ctx.reply(parsed[0])
             await ctx.message.add_reaction("❌")
 
-    @commands.command()
+    @command()
     async def pdraw(self,ctx):
         """Draws a card from the server specific deck and DMs the result"""
         parsed = await self.parse_draw(ctx)
@@ -139,12 +131,17 @@ class CardDeck(commands.Cog):
             await ctx.reply(parsed[0])
             await ctx.message.add_reaction("❌")
 
-    @commands.command()
+    @command()
     async def newdeck(self,ctx):
         """Generates / regenerates the server specific deck"""
+
+        if type(ctx.channel) == DMChannel:
+            return await ctx.send("This command doesn't work in DMs. Try again in a server.")
+
         #checks for correct permissions
         if not ctx.author.guild_permissions.manage_messages:
-            return await ctx.author.send("You can't do that without the server-wide `manage_messages` permission.",reference = ctx.message)
+            return await ctx.author.send("You can't do that without the server-wide `manage_messages` permission.")
+
         #grabs the correct deck and fills it
         d = self.bot.decks.get(ctx.channel.guild.id, None)
         self.bot.decks[ctx.channel.guild.id] = Deck.locked() #prevent changes
@@ -155,7 +152,7 @@ class CardDeck(commands.Cog):
         self.bot.decks[ctx.channel.guild.id].locked = 0 #allow changes
         await ctx.reply("Successfully generated a new deck.")
 
-    @commands.command()
+    @command()
     async def deck(self,ctx):
         """Checks the amount of cards left in the deck"""
         #get the deck
@@ -165,7 +162,7 @@ class CardDeck(commands.Cog):
             return await ctx.reply("The deck is empty.")
         await ctx.reply("There are {} card(s) left.".format(str(len(deck.cards))))
 
-class DiceRolls(commands.Cog):
+class DiceRolls(Cog):
     def __init__(self,bot):
         self.bot = bot
     async def parse_roll(self,ctx,stringle):
@@ -181,13 +178,13 @@ class DiceRolls(commands.Cog):
             result = "{} = `{}`".format(parsed[0],result.total)
         return "{}'s roll:\n{}{}".format(ctx.author.mention,str(result),parsed[1])
 
-    @commands.command()
+    @command()
     async def roll(self,ctx,*,stringle):
         """Rolls dice"""
         parsed = await self.parse_roll(ctx,stringle)
         await ctx.reply(parsed)
 
-    @commands.command()
+    @command()
     async def proll(self,ctx,*,stringle):
         """Rolls dice and DMs the result"""
         parsed = await self.parse_roll(ctx,stringle)
