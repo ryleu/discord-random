@@ -55,6 +55,8 @@ class Deck():
             except IndexError:
                 return drawn
         return drawn
+    def extend(self, list):
+        self.cards.extend(list)
     @classmethod
     def full(cls,shuffled = True):
         d = cls(shuffled = shuffled)
