@@ -188,7 +188,7 @@ class DiceRolls(Cog):
         parsed = await self.parse_roll(ctx,stringle)
         await ctx.reply(parsed)
 
-    @cog_ext.cog_slash(name = "roll",guild_ids = [795347025428348948])
+    @cog_ext.cog_slash(name = "roll")
     async def _slash_roll(self,ctx: SlashContext,*,params,comment = None):
         """Rolls dice"""
         parsed = await self.parse_roll(ctx,"{} ~ {}".format(params,comment) if comment else params)
