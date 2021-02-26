@@ -2,6 +2,7 @@ from discord.ext.commands import Bot, when_mentioned
 from json import loads
 from traceback import print_last
 from discord.ext.commands.errors import CommandNotFound
+from discord_slash import SlashCommand
 
 with open("token.json","r") as file:
     config = loads(file.read())
@@ -9,6 +10,8 @@ with open("token.json","r") as file:
 owners = config.pop("owners",None)
 
 me = Bot(when_mentioned,owner_ids=set(owners) if owners else None)
+me.slash_handler = SlashCommand(me,sync_commands = True, sync_on_cog_reload = True, override_type = True)
+
 try:
     me.load_extension("extensions")
 except Exception:

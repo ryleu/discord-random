@@ -2,6 +2,7 @@ from discord.ext.commands import when_mentioned_or, command, Cog
 from d20 import roll
 from random import randint
 from discord import AllowedMentions, DMChannel
+from discord_slash import cog_ext, SlashContext
 
 def configure_bot(bot):
     bot.allowed_mentions = AllowedMentions.none()
@@ -183,6 +184,12 @@ class DiceRolls(Cog):
         """Rolls dice"""
         parsed = await self.parse_roll(ctx,stringle)
         await ctx.reply(parsed)
+
+    @cog_ext.cog_slash(name = "roll",guild_ids = [795347025428348948])
+    async def _slash_roll(self,ctx: SlashContext,*,params,comment = None):
+        """Rolls dice"""
+        parsed = await self.parse_roll(ctx,"{} ~ {}".format(params,comment) if comment else params)
+        await ctx.send(parsed)
 
     @command()
     async def proll(self,ctx,*,stringle):
