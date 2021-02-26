@@ -56,6 +56,8 @@ class Deck():
             except IndexError:
                 return drawn
         return drawn
+    def extend(self, list):
+        self.cards.extend(list)
     @classmethod
     def full(cls,shuffled = True):
         d = cls(shuffled = shuffled)
@@ -106,7 +108,7 @@ class CardDeck(Cog):
         self.bot.decks[ctx.channel.guild.id] = deck
         self.bot.decks[ctx.channel.guild.id].locked = 0
 
-        return ["{} drew **{}**\n{}".format(ctx.author.mention,str(card),card.art),True]
+        return ["{} drew **{}**\n{}".format(ctx.author.mention,str(card),card.art),True,cards]
 
     @command()
     async def draw(self,ctx):
@@ -127,6 +129,7 @@ class CardDeck(Cog):
                 await ctx.author.send(parsed[0])
                 await ctx.message.add_reaction("✅")
             except:
+                self.bot.decks[ctx.channel.guild.id].extend(parsed[2])
                 await ctx.reply("I need to be able to DM you for a private draw.")
         else:
             await ctx.reply(parsed[0])
