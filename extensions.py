@@ -217,6 +217,8 @@ class DiceRolls(Cog):
         result = roll(parsed[0].replace(" ",""))
         if len(parsed) > 1:
             parsed[1] = "\nReason: `{}`".format(parsed[1])
+            while parsed[1].startswith(" "):
+                parsed[1] = parsed[1][1:]
         else:
             parsed.append("")
         #make sure the result isn't too long
