@@ -15,25 +15,24 @@ class Card():
         self.value = value
 
         # set the icon to the proper thing
-        if self.value > 10: # 11 = J, 12 = Q, 12 = K
-            self.valChar = ["J","Q","K"][self.value - 11]
-        elif self.value == 1:
-            self.valChar = "A"
-        else:
-            self.valChar = str(self.value)
+        # [("1" + x if x == "0" else x + " ") for x in "?A234567890JQK"]
+
         id = ["heart","club","diamond","spade"].index(self.suit)
         self.suitChar = ["♥️","♣️","♦️","♠️"][id]
 
         #figure out the card art
-        base = "```\n{}----{}{}\n|     |\n| {}  |\n|     |\n{}{}----{}\n```"
-        dChar = self.valChar
-        sChar = ""
-        if len(dChar) == 1:
-            dChar = " " + dChar
-            sChar = "-"
-        self.art = base.format(self.suitChar,sChar,self.valChar,dChar,self.valChar,sChar,self.suitChar)
+        base = "```\n{suit}----{dash}{value}\n|     |\n| {center}  |\n|     |\n{value}{dash}----{suit}\n```"
+        self.art = base.format(
+                suit = self.suitChar,
+                value = self.valChar,
+                center = ("1" + self.valChar if self.valChar == "0" else self.valChar + " "),
+                dash = "-" if len(self.valChar) == 1 else ""
+            )
     def __str__(self):
         return "{} of {}s".format(self.valChar,self.suit)
+    @property
+    def valChar(self):
+        return ['?', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'][value]
 
 class Deck():
     def __init__(self,shuffled = True):
@@ -83,7 +82,7 @@ class CardDeck(Cog):
 
         # if there isn't one then fail
         if deck == None:
-            return ["There is no deck for this server. Generate one with `{}newdeck`".format(ctx.prefix),False]
+            return ["There is no deck for this server. Generate one with `newdeck`",False]
 
         # otherwise, make sure it isn't locked
         elif deck.locked != 0:
@@ -94,7 +93,7 @@ class CardDeck(Cog):
 
         # if it's empty then say so
         elif deck.cards == []:
-            return ["There are no cards on this deck. Generate a new one with `{}newdeck`".format(ctx.prefix),False]
+            return ["There are no cards on this deck. Generate a new one with `newdeck`",False]
 
         # lock it and try to draw a card
         self.bot.decks[ctx.channel.guild.id].locked = 1
@@ -119,6 +118,16 @@ class CardDeck(Cog):
         else:
             await ctx.reply(parsed[0])
             await ctx.message.add_reaction("❌")
+
+    @cog_ext.cog_slash(name = "draw")
+    async def _slash_draw(self,ctx: SlashContext):
+        """Draws a card from the server specific deck"""
+        parsed = await self.parse_draw(ctx)
+        await ctx.ack()
+        if parsed[1]:
+            await ctx.send(parsed[0])
+        else:
+            await ctx.reply(parsed[0])
 
     @command()
     async def pdraw(self,ctx):
@@ -156,6 +165,26 @@ class CardDeck(Cog):
         self.bot.decks[ctx.channel.guild.id].locked = 0 #allow changes
         await ctx.reply("Successfully generated a new deck.")
 
+    #@cog_ext.cog_slash(name = "newdeck")
+    async def _slash_newdeck(self,ctx: SlashContext):
+        """Generates / regenerates the server specific deck"""
+        await ack()
+        return await ctx.send("This command is currently disabled because I'm lazy and I don't know how to fix it at the moment. Add the bot to use this fuctionality.")
+        #checks for correct permissions
+        if not ctx.author.guild_permissions.manage_messages:
+            return await ctx.send_hidden("You can't do that without the server-wide `manage_messages` permission.")
+
+        #grabs the correct deck and fills it
+        d = self.bot.decks.get(ctx.channel.guild.id, None)
+        self.bot.decks[ctx.channel.guild.id] = Deck.locked() #prevent changes
+        if d == None:
+            self.bot.decks[ctx.channel.guild.id] = Deck.full() #create a new, full deck
+        else:
+            self.bot.decks[ctx.channel.guild.id].populate() #refill the current deck (probably saves memory)
+        self.bot.decks[ctx.channel.guild.id].locked = 0 #allow changes
+        await ctx.ack()
+        await ctx.send("Successfully generated a new deck.")
+
     @command()
     async def deck(self,ctx):
         """Checks the amount of cards left in the deck"""
@@ -163,8 +192,21 @@ class CardDeck(Cog):
         deck = self.bot.decks.get(ctx.channel.guild.id,None)
         #check if it's empty
         if deck == None or deck.cards == []:
-            return await ctx.reply("The deck is empty.")
-        await ctx.reply("There are {} card(s) left.".format(str(len(deck.cards))))
+            await ctx.reply("The deck is empty.")
+        else:
+            await ctx.reply("There are {} card(s) left.".format(str(len(deck.cards))))
+
+    @cog_ext.cog_slash(name = "deck")
+    async def _slash_deck(self,ctx: SlashContext):
+        """Checks the amount of cards left in the deck"""
+        #get the deck
+        deck = self.bot.decks.get(ctx.channel.guild.id,None)
+        #check if it's empty
+        await ctx.ack()
+        if deck == None or deck.cards == []:
+            await ctx.send("The deck is empty.")
+        else:
+            await ctx.send("There are {} card(s) left.".format(str(len(deck.cards))))
 
 class DiceRolls(Cog):
     def __init__(self,bot):
@@ -189,8 +231,9 @@ class DiceRolls(Cog):
         await ctx.reply(parsed)
 
     @cog_ext.cog_slash(name = "roll")
-    async def _slash_roll(self,ctx: SlashContext,*,params,comment = None):
+    async def _slash_roll(self,ctx: SlashContext,params,comment = None):
         """Rolls dice"""
+        await ctx.ack()
         parsed = await self.parse_roll(ctx,"{} ~ {}".format(params,comment) if comment else params)
         await ctx.send(parsed)
 
