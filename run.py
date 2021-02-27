@@ -10,7 +10,7 @@ with open("token.json","r") as file:
 owners = config.pop("owners",None)
 
 me = Bot(when_mentioned,owner_ids=set(owners) if owners else None)
-me.slash_handler = SlashCommand(me,sync_commands = True, sync_on_cog_reload = True, override_type = True, delete_from_unused_guilds = True)
+me.slash_handler = SlashCommand(me, sync_on_cog_reload = True, override_type = True, delete_from_unused_guilds = True)
 
 try:
     me.load_extension("extensions")
@@ -23,16 +23,19 @@ async def _slash_rlext(ctx: SlashContext):
     """Reloads the commands."""
     await ctx.ack()
     if await me.is_owner(ctx.author):
+        message = await ctx.send_hidden("Reloading all extensions and refreshing slash commands...")
         me.reload_extension("extensions")
-        await ctx.send_hidden("Reloaded all extensions and refreshed the slash commands.")
+        print("\n-----RELOAD-----\n")
     else:
         await ctx.send_hidden("You need to be the owner of the bot to use this command.")
 
 @me.command(hidden = True)
 async def rlext(ctx):
     if await me.is_owner(ctx.author):
+        await ctx.send("Reloading all extensions and refreshing slash commands...")
         me.reload_extension("extensions")
-        await ctx.send("Reloaded all extensions and refreshed the slash commands.")
+        print("\n-----RELOAD-----\n")
+
 @me.event
 async def on_command_error(ctx,err):
     if type(err) == CommandNotFound:
