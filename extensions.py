@@ -27,7 +27,7 @@ class Card():
         self.art = base.format(
                 suit = self.suitChar,
                 value = self.valChar,
-                center = ("1" + self.valChar if self.valChar == "0" else self.valChar + " "),
+                center = (self.valChar if len(self.valChar) > 1 else self.valChar + " "),
                 dash = "-" if len(self.valChar) == 1 else ""
             )
     def __str__(self):
