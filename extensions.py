@@ -1,4 +1,4 @@
-from discord.ext.commands import when_mentioned_or, command, Cog, has_guild_permissions
+from discord.ext.commands import when_mentioned, command, Cog, has_guild_permissions
 from d20 import roll
 from d20.errors import TooManyRolls
 from random import randint
@@ -8,7 +8,7 @@ from discord_slash.utils.manage_commands import create_option
 
 def configure_bot(bot):
     bot.allowed_mentions = AllowedMentions.none()
-    bot.command_prefix = when_mentioned_or("?")
+    bot.command_prefix = when_mentioned
 
 class Card():
     def __init__(self,suit,value):
