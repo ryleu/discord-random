@@ -251,6 +251,17 @@ class DiceRolls(Cog):
             message = await ctx.send("Calculating...")
             parsed = self.parse_roll(*toParse)
             await message.edit(content = parsed)
+
+    @cog_ext.cog_slash(name = "dice", options = [
+            create_option("type","Die type to roll",3,True,["d4 ","d6 ","d8 ","d10","d12","d20","d100"]),
+            create_option("amount","Amount of dice to roll",4,False,[1,2,3,4,5,6,7,8,9]),
+            create_option("comment","Comment to add to the end",3,False),
+            create_option("private","Sends the result privately",5,False)
+            ])
+    async def _slash_dice(self,ctx: SlashContext, type: str, amount: int = 1, comment: str = None, private: bool = False):
+        """Rolls dice (but for noobs)"""
+        await ctx.send(self.parse_roll(*(ctx,"{} ~ {}".format(str(amount)+type,comment) if comment else str(amount)+type)), hidden = private)
+
     '''
     @cog_ext.cog_slash(name = "testroll",guild_ids = [712731280772694198], options = [
             create_option("params","Dice to roll",3,True),
