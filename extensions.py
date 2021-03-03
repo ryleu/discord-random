@@ -17,6 +17,7 @@ class Card():
         self.suit = suit
         self.value = value
     def __str__(self):
+        """Returns the type of card in the format {value} of {suit}"""
         return f"{self.valChar} of {self.suit}s"
     @property
     def valChar(self):
@@ -35,7 +36,7 @@ class Card():
 
 class Deck():
     def __init__(self,*,shuffled = True,allow_private = False):
-        """Initializes a card deck (basically a glorified list of cards)"""
+        """Initializes a card deck (basically a glorified list of cards)."""
         self.cards = []
         self.shuffled = shuffled
         self.allow_private = allow_private
@@ -59,8 +60,8 @@ class Deck():
             except IndexError:
                 return drawn
         return drawn
-    def extend(self, list):
-        self.cards.extend(list)
+    def extend(self, toAdd):
+        self.cards.extend(toAdd)
         return self
     @classmethod
     def full(cls,*args,**kwargs):
@@ -68,10 +69,11 @@ class Deck():
 
 class CardDeck(Cog):
     def __init__(self,bot):
+        """This cog contains all of the commands for drawing from a deck."""
         self.bot = bot
         try:
-            bot.decks
-        except:
+            assert isinstance(bot.decks, dict), "bot.decks needs to be a dict, but it got overwritten. Fix this."
+        except AttributeError:
             bot.decks = {}
 
     @cog_ext.cog_slash(name = "draw", options = [
@@ -132,7 +134,9 @@ class CardDeck(Cog):
 
 class DiceRolls(Cog):
     def __init__(self,bot):
+        """This cog contains all of the commands for rolling dice."""
         self.bot = bot
+    # pylint: disable=no-self-use
     def parse_roll(self,ctx,params,comment):
         #separate the comment
         try:
@@ -165,7 +169,7 @@ class DiceRolls(Cog):
             create_option("private","Sends the result privately",5,False)
             ])
     async def _slash_dice(self,ctx: SlashContext, size: str, amount: int = 1, comment: str = None, private: bool = False):
-        """Rolls dice (but for noobs)"""
+        """Rolls dice (but for noobs)."""
         await ctx.ack()
         await ctx.send(
             self.parse_roll(ctx,
