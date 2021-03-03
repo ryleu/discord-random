@@ -23,7 +23,7 @@ async def _slash_rlext(ctx: SlashContext):
     """Reloads the commands."""
     await ctx.ack()
     if await me.is_owner(ctx.author):
-        message = await ctx.send_hidden("Reloading all extensions and refreshing slash commands...")
+        await ctx.send_hidden("Reloading all extensions and refreshing slash commands...")
         me.reload_extension("extensions")
         print("\n-----RELOAD-----\n")
     else:
@@ -38,7 +38,7 @@ async def rlext(ctx):
 
 @me.event
 async def on_command_error(ctx,err):
-    if type(err) == CommandNotFound:
+    if isinstance(err,CommandNotFound):
         return
     await ctx.send(str(err))
 

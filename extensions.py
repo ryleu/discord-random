@@ -13,33 +13,31 @@ def configure_bot(bot):
 
 class Card():
     def __init__(self,suit,value):
-        # initialize the card with a suit and a value
+        """Initializes the card with a suit and a value."""
         self.suit = suit
         self.value = value
-
-        # set the icon to the proper thing
-        id = ["heart","club","diamond","spade"].index(self.suit)
-        self.suitChar = ["♥️","♣️","♦️","♠️"][id]
-
-        #figure out the card art
-        base = "```\n{suit}----{dash}{value}\n|     |\n|  {center} |\n|     |\n{value}{dash}----{suit}\n```"
-        self.art = base.format(
+    def __str__(self):
+        return f"{self.valChar} of {self.suit}s"
+    @property
+    def valChar(self):
+        return ['?', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'][self.value]
+    @property
+    def suitChar(self):
+        return {"heart":"♥️","club":"♣️","diamond":"♦️","spade":"♠️"}[self.suit]
+    @property
+    def art(self):
+        return "```\n{suit}----{dash}{value}\n|     |\n|  {center} |\n|     |\n{value}{dash}----{suit}\n```".format(
                 suit = self.suitChar,
                 value = self.valChar,
                 center = (self.valChar if len(self.valChar) > 1 else self.valChar + " "),
                 dash = "-" if len(self.valChar) == 1 else ""
             )
-    def __str__(self):
-        return "{} of {}s".format(self.valChar,self.suit)
-    @property
-    def valChar(self):
-        return ['?', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'][self.value]
 
 class Deck():
     def __init__(self,*,shuffled = True,allow_private = False):
+        """Initializes a card deck (basically a glorified list of cards)"""
         self.cards = []
         self.shuffled = shuffled
-        self.locked = 0
         self.allow_private = allow_private
     def populate(self,*,suits = ["heart","club","diamond","spade"],values = range(1,14),allow_private = None):
         if allow_private != None:
@@ -48,9 +46,10 @@ class Deck():
             for j in values:
                 self.cards.append(Card(i,j))
         return self
-    def draw(self,amount=1):
+    async def draw(self,amount=1):
         drawn = []
-        for i in range(amount):
+        while amount > 0:
+            amount -= 1
             try:
                 if self.shuffled:
                     ind = randint(0,len(self.cards))
@@ -63,15 +62,9 @@ class Deck():
     def extend(self, list):
         self.cards.extend(list)
         return self
-    def lock(self):
-        self.locked = -1
-        return self
     @classmethod
     def full(cls,*args,**kwargs):
         return cls(*args, **kwargs).populate()
-    @classmethod
-    def locked(cls):
-        return cls().lock()
 
 class CardDeck(Cog):
     def __init__(self,bot):
@@ -81,72 +74,49 @@ class CardDeck(Cog):
         except:
             bot.decks = {}
 
-    def parse_draw(self,ctx,private = False):
-        # try to grab the deck for the guild
-        deck = self.bot.decks.get(ctx.channel.guild.id,None)
-
-        # if there isn't one then fail
-        if deck == None:
-            return ["There is no deck for this server. Generate one with `newdeck`",False]
-
-        if private and not deck.allow_private:
-            return ["This deck does not allow private drawing.",False]
-
-        # otherwise, make sure it isn't locked
-        elif deck.locked != 0:
-            # if it is then say so and drop the lock level by one
-            if self.bot.decks[ctx.channel.guild.id].locked > 1:
-                self.bot.decks[ctx.channel.guild.id].locked -= 1
-            elif self.bot.decks[ctx.channel.guild.id].locked < -1:
-                self.bot.decks[ctx.channel.guild.id].locked += 1
-            return ["The deck is currently locked. Wait for other commands to finish first.",False]
-
-        # if it's empty then say so
-        elif deck.cards == []:
-            return ["There are no cards on this deck. Generate a new one with `newdeck`",False]
-
-        # lock it and try to draw a card
-        self.bot.decks[ctx.channel.guild.id].locked = 1
-        cards = deck.draw()
-        if cards == []:
-            return ["Something went wrong. Please try again.",False]
-        else:
-            card = cards[0]
-
-        # unlock the deck and save it then return the card
-        self.bot.decks[ctx.channel.guild.id] = deck
-        self.bot.decks[ctx.channel.guild.id].locked = 0
-
-        return ["{} drew **{}**\n{}".format(ctx.author.mention,str(card),card.art),True,cards]
-
     @cog_ext.cog_slash(name = "draw", options = [
             create_option("private","Sends the result privately",5,False)
             ])
     async def _slash_draw(self,ctx: SlashContext, private: bool = False):
-        """Draws a card from the server specific deck"""
-        parsed = self.parse_draw(ctx,private)
+        """Draws a card from the server specific deck."""
         await ctx.ack()
-        await ctx.send(parsed[0], hidden = private)
+
+        # try to grab the deck for the guild
+        deck = self.bot.decks.get(ctx.channel.guild.id,None)
+
+        # if there isn't one then fail
+        if deck == None or deck.cards == []:
+            parsed = "There are no cards on this deck. Generate a new one with `newdeck`"
+
+        elif private and not deck.allow_private:
+            parsed = "This deck does not allow private drawing."
+
+        else:
+            cards = await deck.draw()
+            if cards == []:
+                parsed = "Something went wrong. Please try again."
+            else:
+                card = cards[0]
+                parsed = f"{ctx.author.mention} drew **{str(card)}**\n{card.art}"
+        await ctx.send(parsed, hidden = private)
 
     @cog_ext.cog_subcommand(base = "deck", name = "new", options = [
-            create_option("allow_private","Enables private drawing",5,False)
+            create_option("allow_private","Enables private drawing",5,False),
+            create_option("mode","Changes the deck's mode",5,False)
             ])
     async def _slash_newdeck(self,ctx: SlashContext, allow_private: bool = False):
-        """Generates / regenerates the server specific deck"""
+        """Generates / regenerates the server specific deck."""
         await ctx.ack()
-        message = await ctx.send("Working...")
         try:
             assert ctx.author.guild_permissions.manage_messages
         except AttributeError:
-            await message.edit(content = "I need to be in the server to do this.")
+            await ctx.send("I need to be in the server to do this.")
         except AssertionError:
-            await message.edit(content = "You need server-wide manage messages to do this.")
+            await ctx.send("You need server-wide manage messages to do this.")
         else:
             #grabs the correct deck and fills it
-            d = self.bot.decks.get(ctx.channel.guild.id, None)
-            self.bot.decks[ctx.channel.guild.id] = Deck.locked() #prevent changes
             self.bot.decks[ctx.channel.guild.id] = Deck.full(allow_private = allow_private) #create a new, full deck
-            await message.edit(content = "Successfully generated a new deck.")
+            await ctx.send("Successfully generated a new deck.")
 
     @cog_ext.cog_subcommand(base = "deck", name = "cards")
     async def _slash_deck(self,ctx: SlashContext):
@@ -158,28 +128,25 @@ class CardDeck(Cog):
         if deck == None or deck.cards == []:
             await ctx.send("The deck is empty.")
         else:
-            await ctx.send("There are {} card(s) left.".format(str(len(deck.cards))))
+            await ctx.send(f"There are {str(len(deck.cards))} card(s) left.")
 
 class DiceRolls(Cog):
     def __init__(self,bot):
         self.bot = bot
-    def parse_roll(self,ctx,stringle):
+    def parse_roll(self,ctx,params,comment):
         #separate the comment
-        parsed = stringle.split("~")
         try:
-            result = roll(parsed[0].replace(" ",""))
+            result = roll(params.replace(" ",""))
         except TooManyRolls:
             return "You can't roll more than 1000 total dice."
-        if len(parsed) > 1:
-            parsed[1] = "\nReason: `{}`".format(parsed[1])
-            while parsed[1].startswith(" "):
-                parsed[1] = parsed[1][1:]
-        else:
-            parsed.append("")
         #make sure the result isn't too long
         if len(str(result)) > 500:
-            result = "{} = `{}`".format(parsed[0],result.total)
-        return "{}'s roll:\n{}{}".format(ctx.author.mention,str(result),parsed[1])
+            result = f"{params} = `{result.total}`"
+        return f"""
+{ctx.author.mention}'s roll:
+{str(result)}
+{("Reason: "+ comment) if comment else ""}
+"""
 
     @cog_ext.cog_slash(name = "roll", options = [
             create_option("params","Dice to roll",3,True),
@@ -187,18 +154,9 @@ class DiceRolls(Cog):
             create_option("private","Sends the result privately",5,False)
             ])
     async def _slash_roll(self,ctx: SlashContext,params: str,comment: str = None, private: bool = False):
-        """Rolls dice"""
-        toParse = (ctx,"{} ~ {}".format(params,comment) if comment else params)
-        if private:
-            await ctx.ack()
-            if len(params) > 5:
-                await ctx.send_hidden("Large private rolls are currently not supported.")
-            else:
-                await ctx.send_hidden(self.parse_roll(*toParse))
-        else:
-            message = await ctx.send("Calculating...")
-            parsed = self.parse_roll(*toParse)
-            await message.edit(content = parsed)
+        """Rolls dice."""
+        await ctx.ack()
+        await ctx.send(self.parse_roll(ctx,params,comment), hidden = private)
 
     @cog_ext.cog_slash(name = "dice", options = [
             create_option("type","Die type to roll",3,True,["d4 ","d6 ","d8 ","d10","d12","d20","d100"]),
@@ -206,9 +164,13 @@ class DiceRolls(Cog):
             create_option("comment","Comment to add to the end",3,False),
             create_option("private","Sends the result privately",5,False)
             ])
-    async def _slash_dice(self,ctx: SlashContext, type: str, amount: int = 1, comment: str = None, private: bool = False):
+    async def _slash_dice(self,ctx: SlashContext, size: str, amount: int = 1, comment: str = None, private: bool = False):
         """Rolls dice (but for noobs)"""
-        await ctx.send(self.parse_roll(*(ctx,"{} ~ {}".format(str(amount)+type,comment) if comment else str(amount)+type)), hidden = private)
+        await ctx.ack()
+        await ctx.send(
+            self.parse_roll(ctx,
+                str(amount) + size if amount else size,
+                comment),hidden = private)
 
 cogs = [CardDeck,DiceRolls]
 
