@@ -17,7 +17,7 @@ class Card():
         self.suit = suit
         self.value = value
     def __str__(self):
-        """Returns the type of card in the format {value} of {suit}"""
+        """Returns the type of card in the format {value} of {suit}."""
         return f"{self.valChar} of {self.suit}s"
     @property
     def valChar(self):
@@ -69,7 +69,7 @@ class Deck():
 
 class CardDeck(Cog):
     def __init__(self,bot):
-        """This cog contains all of the commands for drawing from a deck."""
+        """Cog that contains all of the commands for drawing from a deck."""
         self.bot = bot
         try:
             assert isinstance(bot.decks, dict), "bot.decks needs to be a dict, but it got overwritten. Fix this."
@@ -122,7 +122,7 @@ class CardDeck(Cog):
 
     @cog_ext.cog_subcommand(base = "deck", name = "cards")
     async def _slash_deck(self,ctx: SlashContext):
-        """Checks the amount of cards left in the deck"""
+        """Checks the amount of cards left in the deck."""
         await ctx.ack()
         #get the deck
         deck = self.bot.decks.get(ctx.channel.guild.id,None)
@@ -134,7 +134,7 @@ class CardDeck(Cog):
 
 class DiceRolls(Cog):
     def __init__(self,bot):
-        """This cog contains all of the commands for rolling dice."""
+        """Cog that contains all of the commands for rolling dice."""
         self.bot = bot
     # pylint: disable=no-self-use
     def parse_roll(self,ctx,params,comment):
