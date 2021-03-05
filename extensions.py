@@ -1,6 +1,6 @@
 from discord.ext.commands import when_mentioned, Cog
-from d20 import roll
-from d20.errors import TooManyRolls
+from d20 import roll, AdvType
+from d20.errors import TooManyRolls, RollSyntaxError
 from random import randint
 from discord import AllowedMentions
 from discord_slash import cog_ext, SlashContext
@@ -137,17 +137,18 @@ class DiceRolls(Cog):
         """Cog that contains all of the commands for rolling dice."""
         self.bot = bot
     # pylint: disable=no-self-use
-    def parse_roll(self,ctx,params,comment):
-        #separate the comment
+    def parse_roll(self,params,*,comment=None,adv = AdvType.NONE):
         try:
-            result = roll(params.replace(" ",""))
+            result = roll(params,None,False,{"Advantage":AdvType.ADV,"Disadvantage":AdvType.DIS,"None":AdvType.NONE}[adv if adv else "None"])
         except TooManyRolls:
             return "You can't roll more than 1000 total dice."
+        except RollSyntaxError as err:
+            return f"""{str(err)}```\n{params}\n{(err.col-1)*" "+len(err.got)*"^"}\n```"""
+
         #make sure the result isn't too long
         if len(str(result)) > 500:
             result = f"{params} = `{result.total}`"
         return f"""
-{ctx.author.mention}'s roll:
 {str(result)}
 {("Reason: "+ comment) if comment else ""}
 """
@@ -157,24 +158,23 @@ class DiceRolls(Cog):
             create_option("comment","Comment to add to the end",3,False),
             create_option("private","Sends the result privately",5,False)
             ])
-    async def _slash_roll(self,ctx: SlashContext,params: str,comment: str = None, private: bool = False):
+    async def _slash_roll(self,ctx: SlashContext,**kwargs):
         """Rolls dice."""
         await ctx.ack()
-        await ctx.send(self.parse_roll(ctx,params,comment), hidden = private)
+        private = kwargs.pop("private",False)
+        await ctx.send(self.parse_roll(**kwargs), hidden = private)
 
     @cog_ext.cog_slash(name = "dice", options = [
-            create_option("type","Die type to roll",3,True,["d4 ","d6 ","d8 ","d10","d12","d20","d100"]),
-            create_option("amount","Amount of dice to roll",4,False,[1,2,3,4,5,6,7,8,9]),
-            create_option("comment","Comment to add to the end",3,False),
+            create_option("size","The die size",3,True,["d4","d6","d8","d10","d12","d20","d100"]),
+            create_option("amount","The amount of dice to roll (number)",4,False),
             create_option("private","Sends the result privately",5,False)
             ])
-    async def _slash_dice(self,ctx: SlashContext, size: str, amount: int = 1, comment: str = None, private: bool = False):
+    async def _slash_dice(self, ctx: SlashContext, **kwargs):
         """Rolls dice (but for noobs)."""
         await ctx.ack()
-        await ctx.send(
-            self.parse_roll(ctx,
-                str(amount) + size if amount else size,
-                comment),hidden = private)
+        private = kwargs.pop("private",False)
+        params = str(kwargs.pop("amount",1)) + kwargs.pop("size")
+        await ctx.send(self.parse_roll(params = params,**kwargs),hidden = private)
 
 cogs = [CardDeck,DiceRolls]
 
