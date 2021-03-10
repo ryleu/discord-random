@@ -4,7 +4,6 @@ import logging
 from traceback import format_tb
 from discord.ext.commands.errors import CommandNotFound
 from discord_slash import SlashCommand, SlashContext
-from discord import Forbidden
 from datetime import datetime
 
 def formatTime(time):

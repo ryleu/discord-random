@@ -5,6 +5,7 @@ from random import randint
 from discord import AllowedMentions
 from discord_slash import cog_ext, SlashContext
 from discord_slash.utils.manage_commands import create_option
+import logging
 
 def configure_bot(bot):
     bot.allowed_mentions = AllowedMentions.none()
@@ -72,7 +73,8 @@ class CardDeck(Cog):
         """Cog that contains all of the commands for drawing from a deck."""
         self.bot = bot
         try:
-            assert isinstance(bot.decks, dict), "bot.decks needs to be a dict, but it got overwritten. Fix this."
+            if isinstance(bot.decks, dict):
+                logging.error("bot.decks needs to be a dict, but it got overwritten. Fix this.")
         except AttributeError:
             bot.decks = {}
 
@@ -110,11 +112,10 @@ class CardDeck(Cog):
         """Generates / regenerates the server specific deck."""
         await ctx.ack()
         try:
-            assert ctx.author.guild_permissions.manage_messages
+            if ctx.author.guild_permissions.manage_messages:
+                await ctx.send("You need server-wide manage messages to do this.")
         except AttributeError:
             await ctx.send("I need to be in the server to do this.")
-        except AssertionError:
-            await ctx.send("You need server-wide manage messages to do this.")
         else:
             #grabs the correct deck and fills it
             self.bot.decks[ctx.channel.guild.id] = Deck.full(allow_private = allow_private) #create a new, full deck
