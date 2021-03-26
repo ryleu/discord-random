@@ -29,12 +29,12 @@ async def rlext(ctx: SlashContext):
             me.reload_extension("extensions")
         except Exception as err:
             logging.critical("\n".join(format_tb(err.__traceback__)))
-            await ctx.send_hidden("wow you killed me great thanks")
+            await ctx.send("wow you killed me great thanks", hidden = True)
         else:
-            await ctx.send_hidden("Reloaded all commands.")
+            await ctx.send("Reloaded all commands.", hidden = True)
         print("\n-----RELOAD-----\n")
     else:
-        await ctx.send_hidden("You need to be the owner of the bot to use this command.")
+        await ctx.send("You need to be the owner of the bot to use this command.", hidden = True)
 
 me.slash_handler.add_slash_command(rlext)
 

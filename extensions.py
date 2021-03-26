@@ -83,7 +83,7 @@ class CardDeck(Cog):
             ])
     async def _slash_draw(self,ctx: SlashContext, private: bool = False):
         """Draws a card from the server specific deck."""
-        await ctx.ack()
+        await ctx.defer()
 
         # try to grab the deck for the guild
         deck = self.bot.decks.get(ctx.channel.guild.id,None)
@@ -110,10 +110,10 @@ class CardDeck(Cog):
             ])
     async def _slash_newdeck(self,ctx: SlashContext, allow_private: bool = False):
         """Generates / regenerates the server specific deck."""
-        await ctx.ack()
+        await ctx.defer()
         try:
-            if ctx.author.guild_permissions.manage_messages:
-                await ctx.send("You need server-wide manage messages to do this.")
+            if not ctx.author.guild_permissions.manage_messages:
+                return await ctx.send("You need server-wide manage messages to do this.")
         except AttributeError:
             await ctx.send("I need to be in the server to do this.")
         else:
@@ -124,7 +124,7 @@ class CardDeck(Cog):
     @cog_ext.cog_subcommand(base = "deck", name = "cards")
     async def _slash_deck(self,ctx: SlashContext):
         """Checks the amount of cards left in the deck."""
-        await ctx.ack()
+        await ctx.defer()
         #get the deck
         deck = self.bot.decks.get(ctx.channel.guild.id,None)
         #check if it's empty
@@ -161,7 +161,7 @@ class DiceRolls(Cog):
             ])
     async def _slash_roll(self,ctx: SlashContext,**kwargs):
         """Rolls dice."""
-        await ctx.ack()
+        await ctx.defer()
         private = kwargs.pop("private",False)
         await ctx.send(self.parse_roll(**kwargs), hidden = private)
 
@@ -172,7 +172,7 @@ class DiceRolls(Cog):
             ])
     async def _slash_dice(self, ctx: SlashContext, **kwargs):
         """Rolls dice (but for noobs)."""
-        await ctx.ack()
+        await ctx.defer()
         private = kwargs.pop("private",False)
         params = str(kwargs.pop("amount",1)) + kwargs.pop("size")
         await ctx.send(self.parse_roll(params = params,**kwargs),hidden = private)
