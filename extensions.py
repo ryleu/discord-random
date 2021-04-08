@@ -61,9 +61,12 @@ class Deck():
             except IndexError:
                 return drawn
         return drawn
-    def extend(self, toAdd):
+    async def extend(self, toAdd):
         self.cards.extend(toAdd)
         return self
+    @property
+    def length(self):
+        return len(self.cards)
     @classmethod
     def full(cls,*args,**kwargs):
         return cls(*args, **kwargs).populate()
@@ -81,9 +84,9 @@ class CardDeck(Cog):
     @cog_ext.cog_slash(name = "draw", options = [
             create_option("private","Sends the result privately",5,False)
             ])
-    async def _slash_draw(self,ctx: SlashContext, private: bool = False):
+    async def _slash_draw(self,ctx: SlashContext, private: bool = None):
         """Draws a card from the server specific deck."""
-        await ctx.defer()
+        await ctx.defer(hidden = private)
 
         # try to grab the deck for the guild
         deck = self.bot.decks.get(ctx.channel.guild.id,None)
@@ -128,10 +131,10 @@ class CardDeck(Cog):
         #get the deck
         deck = self.bot.decks.get(ctx.channel.guild.id,None)
         #check if it's empty
-        if deck == None or deck.cards == []:
+        if deck == None or not deck.length:
             await ctx.send("The deck is empty.")
         else:
-            await ctx.send(f"There are {str(len(deck.cards))} card(s) left.")
+            await ctx.send(f"There are {str(deck.length)} card(s) left.")
 
 class DiceRolls(Cog):
     def __init__(self,bot):
@@ -161,8 +164,8 @@ class DiceRolls(Cog):
             ])
     async def _slash_roll(self,ctx: SlashContext,**kwargs):
         """Rolls dice."""
-        await ctx.defer()
-        private = kwargs.pop("private",False)
+        private = kwargs.pop("private",None)
+        await ctx.defer(hidden = private)
         await ctx.send(self.parse_roll(**kwargs), hidden = private)
 
     @cog_ext.cog_slash(name = "dice", options = [
@@ -172,8 +175,8 @@ class DiceRolls(Cog):
             ])
     async def _slash_dice(self, ctx: SlashContext, **kwargs):
         """Rolls dice (but for noobs)."""
-        await ctx.defer()
-        private = kwargs.pop("private",False)
+        private = kwargs.pop("private",None)
+        await ctx.defer(hidden = private)
         params = str(kwargs.pop("amount",1)) + kwargs.pop("size")
         await ctx.send(self.parse_roll(params = params,**kwargs),hidden = private)
 
