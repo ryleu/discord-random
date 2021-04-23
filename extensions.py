@@ -1,15 +1,15 @@
-from discord.ext.commands import when_mentioned, Cog
-from d20 import roll, AdvType
-from d20.errors import TooManyRolls, RollSyntaxError
-from random import randint
-from discord import AllowedMentions
-from discord_slash import cog_ext, SlashContext
-from discord_slash.utils.manage_commands import create_option
+from discord.ext import commands
+import d20
+import random
+import discord
+import discord_slash
+from discord_slash import cog_ext
+from discord_slash.utils import manage_commands
 import logging
 
 def configure_bot(bot):
-    bot.allowed_mentions = AllowedMentions.none()
-    bot.command_prefix = when_mentioned
+    bot.allowed_mentions = discord.AllowedMentions.none()
+    bot.command_prefix = commands.when_mentioned
     bot.help_command = None
 
 class Card():
@@ -54,7 +54,7 @@ class Deck():
             amount -= 1
             try:
                 if self.shuffled:
-                    ind = randint(0,len(self.cards))
+                    ind = random.randint(0,len(self.cards))
                     drawn.append(self.cards.pop(ind))
                 else:
                     drawn.append(self.cards.pop())
@@ -71,20 +71,21 @@ class Deck():
     def full(cls,*args,**kwargs):
         return cls(*args, **kwargs).populate()
 
-class CardDeck(Cog):
+class CardDeck(commands.Cog):
     def __init__(self,bot):
         """Cog that contains all of the commands for drawing from a deck."""
         self.bot = bot
         try:
             if isinstance(bot.decks, dict):
-                logging.error("bot.decks needs to be a dict, but it got overwritten. Fix this.")
+                logging.error("bot.decks should be a dict, but it got overwritten. Fix this.")
         except AttributeError:
+            logging.info("bot.decks doesn't exist.")
             bot.decks = {}
 
     @cog_ext.cog_slash(name = "draw", options = [
-            create_option("private","Sends the result privately",5,False)
+            manage_commands.create_option("private","Sends the result privately",5,False)
             ])
-    async def _slash_draw(self,ctx: SlashContext, private: bool = None):
+    async def _slash_draw(self,ctx: discord_slash.SlashContext, private: bool = None):
         """Draws a card from the server specific deck."""
         await ctx.defer(hidden = private)
 
@@ -108,10 +109,10 @@ class CardDeck(Cog):
         await ctx.send(parsed, hidden = private)
 
     @cog_ext.cog_subcommand(base = "deck", name = "new", options = [
-            create_option("allow_private","Enables private drawing",5,False),
-            create_option("mode","Changes the deck's mode",5,False)
+            manage_commands.create_option("allow_private","Enables private drawing",5,False),
+            manage_commands.create_option("mode","Changes the deck's mode",5,False)
             ])
-    async def _slash_newdeck(self,ctx: SlashContext, allow_private: bool = False):
+    async def _slash_newdeck(self,ctx: discord_slash.SlashContext, allow_private: bool = False):
         """Generates / regenerates the server specific deck."""
         await ctx.defer()
         try:
@@ -125,7 +126,7 @@ class CardDeck(Cog):
             await ctx.send("Successfully generated a new deck.")
 
     @cog_ext.cog_subcommand(base = "deck", name = "cards")
-    async def _slash_deck(self,ctx: SlashContext):
+    async def _slash_deck(self,ctx: discord_slash.SlashContext):
         """Checks the amount of cards left in the deck."""
         await ctx.defer()
         #get the deck
@@ -136,17 +137,17 @@ class CardDeck(Cog):
         else:
             await ctx.send(f"There are {str(deck.length)} card(s) left.")
 
-class DiceRolls(Cog):
+class DiceRolls(commands.Cog):
     def __init__(self,bot):
         """Cog that contains all of the commands for rolling dice."""
         self.bot = bot
     # pylint: disable=no-self-use
-    def parse_roll(self,params,*,comment=None,adv = AdvType.NONE):
+    def parse_roll(self,params,*,comment=None,adv = d20.AdvType.NONE):
         try:
-            result = roll(params,None,False,{"Advantage":AdvType.ADV,"Disadvantage":AdvType.DIS,"None":AdvType.NONE}[adv if adv else "None"])
-        except TooManyRolls:
+            result = d20.roll(params,None,False,{"Advantage":d20.AdvType.ADV,"Disadvantage":d20.AdvType.DIS,"None":d20.AdvType.NONE}[adv if adv else "None"])
+        except d20.errors.TooManyRolls:
             return "You can't roll more than 1000 total dice."
-        except RollSyntaxError as err:
+        except d20.errors.RollSyntaxError as err:
             return f"""{str(err)}```\n{params}\n{(err.col-1)*" "+len(err.got)*"^"}\n```"""
 
         #make sure the result isn't too long
@@ -158,22 +159,22 @@ class DiceRolls(Cog):
 """
 
     @cog_ext.cog_slash(name = "roll", options = [
-            create_option("params","Dice to roll",3,True),
-            create_option("comment","Comment to add to the end",3,False),
-            create_option("private","Sends the result privately",5,False)
+            manage_commands.create_option("params","Dice to roll",3,True),
+            manage_commands.create_option("comment","Comment to add to the end",3,False),
+            manage_commands.create_option("private","Sends the result privately",5,False)
             ])
-    async def _slash_roll(self,ctx: SlashContext,**kwargs):
+    async def _slash_roll(self,ctx: discord_slash.SlashContext,**kwargs):
         """Rolls dice."""
         private = kwargs.pop("private",None)
         await ctx.defer(hidden = private)
         await ctx.send(self.parse_roll(**kwargs), hidden = private)
 
     @cog_ext.cog_slash(name = "dice", options = [
-            create_option("size","The die size",3,True,["d4","d6","d8","d10","d12","d20","d100"]),
-            create_option("amount","The amount of dice to roll (number)",4,False),
-            create_option("private","Sends the result privately",5,False)
+            manage_commands.create_option("size","The die size",3,True,["d4","d6","d8","d10","d12","d20","d100"]),
+            manage_commands.create_option("amount","The amount of dice to roll (number)",4,False),
+            manage_commands.create_option("private","Sends the result privately",5,False)
             ])
-    async def _slash_dice(self, ctx: SlashContext, **kwargs):
+    async def _slash_dice(self, ctx: discord_slash.SlashContext, **kwargs):
         """Rolls dice (but for noobs)."""
         private = kwargs.pop("private",None)
         await ctx.defer(hidden = private)
