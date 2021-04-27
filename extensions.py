@@ -1,6 +1,6 @@
 from discord.ext import commands
 import d20
-import random
+import secrets
 import discord
 import discord_slash
 from discord_slash import cog_ext
@@ -54,7 +54,7 @@ class Deck():
             amount -= 1
             try:
                 if self.shuffled:
-                    ind = random.randint(0,len(self.cards))
+                    ind = secrets.randbelow(len(self.cards))
                     drawn.append(self.cards.pop(ind))
                 else:
                     drawn.append(self.cards.pop())
