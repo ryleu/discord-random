@@ -7,6 +7,8 @@ import discord_slash
 import datetime
 import discord
 
+# all of this is protected under the license at https://github.com/FourInchKnife/discord-cardic-inspiration/LICENSE
+
 formatTime = lambda time: str(time)[:str(time).index(".")].replace(":","-").replace(" ","_")
 try:
     logging.basicConfig(filename=f'logs/{formatTime(datetime.datetime.now())}.log', level=logging.INFO)
