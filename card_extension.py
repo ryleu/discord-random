@@ -88,7 +88,7 @@ class CardDeck(commands.Cog):
 
         # if there isn't one then fail
         if deck == None or deck.cards == []:
-            parsed = "There are no cards on this deck. Generate a new one with `newdeck`"
+            parsed = "There are no cards on this deck. Generate a new one with `/deck new`"
 
         elif private and not deck.allow_private:
             parsed = "This deck does not allow private drawing."
@@ -106,27 +106,27 @@ class CardDeck(commands.Cog):
             manage_commands.create_option("allow_private","Enables private drawing",5,False),
             manage_commands.create_option("mode","Changes the deck's mode",5,False)
             ])
-    async def _slash_newdeck(self,ctx: discord_slash.SlashContext, allow_private: bool = False):
+    async def _slash_deck_new(self,ctx: discord_slash.SlashContext, allow_private: bool = False):
         """Generates / regenerates the server specific deck."""
         await ctx.defer()
         try:
             if not ctx.author.guild_permissions.manage_messages:
                 return await ctx.send("You need server-wide manage messages to do this.")
         except AttributeError:
-            await ctx.send("I need to be in the server to do this.")
+            await ctx.send("I need to be in a server with the bot scope to do this.")
         else:
             #grabs the correct deck and fills it
             self.bot.decks[ctx.channel.guild.id] = Deck.full(allow_private = allow_private) #create a new, full deck
             await ctx.send("Successfully generated a new deck.")
     @cog_ext.cog_subcommand(base = "deck", name = "cards")
-    async def _slash_deck(self,ctx: discord_slash.SlashContext):
+    async def _slash_deck_cards(self,ctx: discord_slash.SlashContext):
         """Checks the amount of cards left in the deck."""
         await ctx.defer()
         #get the deck
         deck = self.bot.decks.get(ctx.channel.guild.id,None)
         #check if it's empty
         if deck == None or not deck.length:
-            await ctx.send("The deck is empty.")
+            await ctx.send("The deck is empty. Generate a new one with `/deck new`")
         else:
             await ctx.send(f"There are {str(deck.length)} card(s) left.")
 
