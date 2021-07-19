@@ -121,7 +121,7 @@ class CardDeck(commands.Cog):
                 required = False
                 )
             ])
-    async def _slash_deck_new(self,ctx: discord_slash.SlashContext, allow_private: bool = True):
+    async def _slash_deck_new(self,ctx: discord_slash.SlashContext, allow_private: bool = False):
         """Generates / regenerates the server specific deck."""
         try:
             if not ctx.author.guild_permissions.manage_messages:

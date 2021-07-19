@@ -1,2 +1,2 @@
-venv\Scripts\python run.py
+python3 run.py
 pause
