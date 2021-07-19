@@ -97,7 +97,7 @@ class Miscibility(commands.Cog):
         """Mixes potions."""
         await ctx.defer(hidden = private)
 
-        parsed = tables[table].formatResults(secrets.randbelow,pot1,pot2)
+        parsed = tables[table].formatResults(secrets.randbelow(100),pot1,pot2)
 
         await ctx.send(parsed, hidden = private)
 

@@ -22,7 +22,7 @@ owners = config.pop("owners",None)
 
 me = commands.Bot(commands.when_mentioned,owner_ids=set(owners) if owners else None,
     activity = discord.CustomActivity(name = "Secretly put this as your status and don’t mention it to me or anyone and we can watch it silently spread."))
-me.slash_handler = discord_slash.SlashCommand(me, sync_on_cog_reload = True, override_type = True, delete_from_unused_guilds = True)
+me.slash_handler = discord_slash.SlashCommand(me, sync_commands = True, sync_on_cog_reload = True, override_type = True, delete_from_unused_guilds = True)
 me.allowed_mentions = discord.AllowedMentions.none()
 me.help_command = None
 
