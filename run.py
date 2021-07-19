@@ -28,6 +28,7 @@ me.help_command = None
 
 me.load_extension("card_extension")
 me.load_extension("dice_extension")
+me.load_extension("miscibility_extension")
 
 async def rlext(ctx: discord_slash.SlashContext):
     """Reloads the commands."""

@@ -77,7 +77,12 @@ class CardDeck(commands.Cog):
             bot.decks = {}
 
     @cog_ext.cog_slash(name = "draw", options = [
-            manage_commands.create_option("private","Sends the result privately",5,False)
+            manage_commands.create_option(
+                name = "private",
+                description = "Sends the result privately",
+                option_type = bool,
+                required = False
+                )
             ])
     async def _slash_draw(self,ctx: discord_slash.SlashContext, private: bool = None):
         """Draws a card from the server specific deck."""
@@ -103,8 +108,18 @@ class CardDeck(commands.Cog):
         await ctx.send(parsed, hidden = private)
 
     @cog_ext.cog_subcommand(base = "deck", name = "new", options = [
-            manage_commands.create_option("allow_private","Enables private drawing",5,False),
-            manage_commands.create_option("mode","Changes the deck's mode",5,False)
+            manage_commands.create_option(
+                name = "allow_private",
+                description = "Enables private drawing",
+                option_type = bool,
+                required = False
+                ),
+            manage_commands.create_option(
+                name = "mode",
+                description = "Changes the deck's mode",
+                option_type = bool,
+                required = False
+                )
             ])
     async def _slash_deck_new(self,ctx: discord_slash.SlashContext, allow_private: bool = False):
         """Generates / regenerates the server specific deck."""

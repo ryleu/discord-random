@@ -28,9 +28,24 @@ class DiceRolls(commands.Cog):
 """
 
     @cog_ext.cog_slash(name = "roll", options = [
-            manage_commands.create_option("params","Dice to roll",3,True),
-            manage_commands.create_option("comment","Comment to add to the end",3,False),
-            manage_commands.create_option("private","Sends the result privately",5,False)
+            manage_commands.create_option(
+                name = "params",
+                description = "Dice to roll",
+                option_type = str,
+                required = True
+                ),
+            manage_commands.create_option(
+                name = "comment",
+                description = "Comment to add to the end",
+                option_type = str,
+                required = False
+                ),
+            manage_commands.create_option(
+                name = "private",
+                description = "Sends the result privately",
+                option_type = bool,
+                required = False
+                )
             ])
     async def _slash_roll(self,ctx: discord_slash.SlashContext,**kwargs):
         """Rolls dice."""
@@ -39,9 +54,25 @@ class DiceRolls(commands.Cog):
         await ctx.send(self.parse_roll(**kwargs), hidden = private)
 
     @cog_ext.cog_slash(name = "dice", options = [
-            manage_commands.create_option("size","The die size",3,True,["d4","d6","d8","d10","d12","d20","d100"]),
-            manage_commands.create_option("amount","The amount of dice to roll (number)",4,False),
-            manage_commands.create_option("private","Sends the result privately",5,False)
+            manage_commands.create_option(
+                name = "size",
+                description = "The die size",
+                option_type = str,
+                required = True,
+                choices = ["d4","d6","d8","d10","d12","d20","d100"]
+                ),
+            manage_commands.create_option(
+                name = "amount",
+                description = "The amount of dice to roll (number)",
+                option_type = int,
+                required = False
+                ),
+            manage_commands.create_option(
+                name = "private",
+                description = "Sends the result privately",
+                option_type = bool,
+                required = False
+                )
             ])
     async def _slash_dice(self, ctx: discord_slash.SlashContext, **kwargs):
         """Rolls dice (but for noobs)."""
