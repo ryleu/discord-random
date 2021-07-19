@@ -36,7 +36,16 @@ class RandomFormat():
 
 
 tables = {
-    "Based Variant":MiscibilityTable({
+    "Basic":MiscibilityTable({
+        ValueRange(1,8):"Immiscible. The ingredients of **{pot1}** and **{pot2}** combine to make a deadly acid. The user takes 4d10 acid damage.",
+        ValueRange(9,20):"Immiscible. The ingredients of **{pot1}** and **{pot2}** combine to make a poisonous toxin. The user takes 3d8 poison damage, and must succeed a DC 13 Constitution saving throw or be Poisoned for 1 minute.",
+        ValueRange(21,34):"Immiscible. **{pot1}** and **{pot2}** are destroyed, as they cancel each other.",
+        ValueRange(35,70):RandomFormat("Immiscible. **{pot1}** is destroyed, and **{pot2}** functions normally"),
+        ValueRange(71,80):"Miscible, with Side Effects. **{pot1}** and **{pot2}** work normally, but the imbiber takes one level of exhaustion, which lasts until after the potions' effects have expired and they finish a Short Rest.",
+        ValueRange(81,92):"Miscible, with Side Effects. **{pot1}** and **{pot2}**, but their durations are each halved.",
+        ValueRange(92,100):"Miscible. **{pot1}** and **{pot2}** work normally unless their effects are contradictory, e.g. diminution / growth."
+    }),
+    "Permenant Variant":MiscibilityTable({
         ValueRange(1,8):"Immiscible. The ingredients of **{pot1}** and **{pot2}** combine to make a deadly acid. The user takes 4d10 acid damage.",
         ValueRange(9,20):"Immiscible. The ingredients of **{pot1}** and **{pot2}** combine to make a poisonous toxin. The user takes 3d8 poison damage, and must succeed a DC 13 Constitution saving throw or be Poisoned for 1 minute.",
         ValueRange(21,34):"Immiscible. **{pot1}** and **{pot2}** are destroyed, as they cancel each other.",

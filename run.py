@@ -11,7 +11,9 @@ import discord
 
 formatTime = lambda time: str(time)[:str(time).index(".")].replace(":","-").replace(" ","_")
 try:
-    logging.basicConfig(filename=f'logs/{formatTime(datetime.datetime.now())}.log', level=logging.INFO)
+    fileName = f'logs/{formatTime(datetime.datetime.now())}.log'
+    logging.basicConfig(filename=fileName, level=logging.INFO)
+    print("Saving logs to",fileName)
 except FileNotFoundError:
     logging.warning("No directory 'logs/' in the current working directory. Errors will not be saved.")
 
