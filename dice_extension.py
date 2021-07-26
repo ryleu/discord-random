@@ -128,8 +128,8 @@ class DiceRolls(commands.Cog):
         await ctx.defer()
         content = f"""{ctx.author.mention}'s roll:
 1d{str(size)} = `{secrets.randbelow(size)+1}`"""
-        await ctx.send(content,components=self.roll_components)
         await ctx.edit_origin(components=[])
+        await ctx.send(content,components=self.roll_components)
 
     @cog_ext.cog_component(components = "roll_d4")
     async def _d4_button_response(self, ctx: discord_slash.ComponentContext):
