@@ -125,7 +125,7 @@ class DiceRolls(commands.Cog):
     ]
 
     async def button_roll_manager(self, ctx: discord_slash.ComponentContext, size: int):
-        await ctx.defer()
+        await ctx.defer(edit_origin=True)
         content = f"""{ctx.author.mention}'s roll:
 1d{str(size)} = `{secrets.randbelow(size)+1}`"""
         await ctx.edit_origin(content=ctx.origin_message.content,components=[])
