@@ -122,7 +122,7 @@ class DiceRolls(commands.Cog):
             )
         )
     ]
-    
+
     async def button_roll_manager(self, ctx: discord_slash.ComponentContext, size: int):
         await ctx.defer()
         content = self.parse_roll(params=f"d{str(size)}")
