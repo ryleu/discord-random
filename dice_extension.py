@@ -82,7 +82,7 @@ class DiceRolls(commands.Cog):
         await ctx.send(self.parse_roll(params = params,**kwargs),hidden = private,components=self.roll_components)
     
     roll_components = [
-        manage_components.create_actionrow([
+        manage_components.create_actionrow(
             manage_components.create_button(
                 style = model.ButtonStyle.blurple,
                 label = "d4",
@@ -108,8 +108,8 @@ class DiceRolls(commands.Cog):
                 label = "d12",
                 custom_id = "roll_d12"
             )
-        ]),
-        manage_components.create_actionrow([
+        ),
+        manage_components.create_actionrow(
             manage_components.create_button(
                 style = model.ButtonStyle.blurple,
                 label = "d20",
@@ -120,7 +120,7 @@ class DiceRolls(commands.Cog):
                 label = "d100",
                 custom_id = "roll_d100"
             )
-        ])
+        )
     ]
     
     async def button_roll_manager(self, ctx: discord_slash.ComponentContext, size: int):
