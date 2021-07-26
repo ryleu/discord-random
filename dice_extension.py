@@ -80,7 +80,7 @@ class DiceRolls(commands.Cog):
         await ctx.defer(hidden = private)
         params = str(kwargs.pop("amount",1)) + kwargs.pop("size")
         await ctx.send(self.parse_roll(params = params,**kwargs),hidden = private,components=self.roll_components)
-    
+
     roll_components = [
         manage_components.create_actionrow(
             manage_components.create_button(
