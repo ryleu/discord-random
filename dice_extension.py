@@ -5,6 +5,7 @@ import discord_slash
 from discord_slash import cog_ext, model
 from discord_slash.utils import manage_commands, manage_components
 import logging
+import secrets
 
 class DiceRolls(commands.Cog):
     def __init__(self,bot):
@@ -125,7 +126,8 @@ class DiceRolls(commands.Cog):
 
     async def button_roll_manager(self, ctx: discord_slash.ComponentContext, size: int):
         await ctx.defer()
-        content = self.parse_roll(params=f"d{str(size)}")
+        content = f"""{ctx.author.mention}'s roll:
+1d{str(size)} = `{secrets.randbelow(size)+1}`"""
         await ctx.send(content,components=self.roll_components)
 
     @cog_ext.cog_component(components = "roll_d4")
