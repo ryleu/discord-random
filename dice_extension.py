@@ -132,22 +132,22 @@ class DiceRolls(commands.Cog):
     async def _d4_button_response(self, ctx: discord_slash.ComponentContext):
         await self.button_roll_manager(ctx,4)
     @cog_ext.cog_component(components = "roll_d6")
-    async def _d4_button_response(self, ctx: discord_slash.ComponentContext):
+    async def _d6_button_response(self, ctx: discord_slash.ComponentContext):
         await self.button_roll_manager(ctx,6)
     @cog_ext.cog_component(components = "roll_d8")
-    async def _d4_button_response(self, ctx: discord_slash.ComponentContext):
+    async def _d8_button_response(self, ctx: discord_slash.ComponentContext):
         await self.button_roll_manager(ctx,8)
     @cog_ext.cog_component(components = "roll_d10")
-    async def _d4_button_response(self, ctx: discord_slash.ComponentContext):
+    async def _d10_button_response(self, ctx: discord_slash.ComponentContext):
         await self.button_roll_manager(ctx,10)
     @cog_ext.cog_component(components = "roll_d12")
-    async def _d4_button_response(self, ctx: discord_slash.ComponentContext):
+    async def _d12_button_response(self, ctx: discord_slash.ComponentContext):
         await self.button_roll_manager(ctx,12)
     @cog_ext.cog_component(components = "roll_d20")
-    async def _d4_button_response(self, ctx: discord_slash.ComponentContext):
+    async def _d20_button_response(self, ctx: discord_slash.ComponentContext):
         await self.button_roll_manager(ctx,20)
     @cog_ext.cog_component(components = "roll_d100")
-    async def _d4_button_response(self, ctx: discord_slash.ComponentContext):
+    async def _d100_button_response(self, ctx: discord_slash.ComponentContext):
         await self.button_roll_manager(ctx,100)
 
 def setup(bot):
