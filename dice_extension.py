@@ -82,47 +82,12 @@ class DiceRolls(commands.Cog):
         params = str(kwargs.pop("amount",1)) + kwargs.pop("size")
         await ctx.send(self.parse_roll(params = params,**kwargs),hidden = private,components=self.roll_components)
 
-    roll_components = [
-        manage_components.create_actionrow(
-            manage_components.create_button(
-                style = model.ButtonStyle.blurple,
-                label = "d4",
-                custom_id = "roll_d4"
-            ),
-            manage_components.create_button(
-                style = model.ButtonStyle.blurple,
-                label = "d6",
-                custom_id = "roll_d6"
-            ),
-            manage_components.create_button(
-                style = model.ButtonStyle.blurple,
-                label = "d8",
-                custom_id = "roll_d8"
-            ),
-            manage_components.create_button(
-                style = model.ButtonStyle.blurple,
-                label = "d10",
-                custom_id = "roll_d10"
-            ),
-            manage_components.create_button(
-                style = model.ButtonStyle.blurple,
-                label = "d12",
-                custom_id = "roll_d12"
-            )
-        ),
-        manage_components.create_actionrow(
-            manage_components.create_button(
-                style = model.ButtonStyle.blurple,
-                label = "d20",
-                custom_id = "roll_d20"
-            ),
-            manage_components.create_button(
-                style = model.ButtonStyle.blurple,
-                label = "d100",
-                custom_id = "roll_d100"
-            )
-        )
-    ]
+    roll_components = manage_components.spread_to_rows(
+        *[manage_components.create_button(
+            style = model.ButtonStyle.blurple,
+            label = "d"+x,
+            custom_id = "roll_d"+x
+        ) for x in ["4","6","8","10","12","20","100"]]
 
     async def button_roll_manager(self, ctx: discord_slash.ComponentContext, size: int):
         await ctx.defer(edit_origin=True)
