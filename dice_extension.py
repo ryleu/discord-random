@@ -2,8 +2,8 @@ from discord.ext import commands
 import d20
 import discord
 import discord_slash
-from discord_slash import cog_ext
-from discord_slash.utils import manage_commands
+from discord_slash import cog_ext, model
+from discord_slash.utils import manage_commands, manage_components
 import logging
 
 class DiceRolls(commands.Cog):
@@ -79,7 +79,76 @@ class DiceRolls(commands.Cog):
         private = kwargs.pop("private",None)
         await ctx.defer(hidden = private)
         params = str(kwargs.pop("amount",1)) + kwargs.pop("size")
-        await ctx.send(self.parse_roll(params = params,**kwargs),hidden = private)
+        await ctx.send(self.parse_roll(params = params,**kwargs),hidden = private,components=self.roll_components)
+
+    roll_components = [
+        manage_components.create_actionrow(
+            manage_components.create_button(
+                style = model.ButtonStyle.blurple,
+                label = "d4",
+                custom_id = "roll_d4"
+            ),
+            manage_components.create_button(
+                style = model.ButtonStyle.blurple,
+                label = "d6",
+                custom_id = "roll_d6"
+            ),
+            manage_components.create_button(
+                style = model.ButtonStyle.blurple,
+                label = "d8",
+                custom_id = "roll_d8"
+            ),
+            manage_components.create_button(
+                style = model.ButtonStyle.blurple,
+                label = "d10",
+                custom_id = "roll_d10"
+            ),
+            manage_components.create_button(
+                style = model.ButtonStyle.blurple,
+                label = "d12",
+                custom_id = "roll_d12"
+            )
+        ),
+        manage_components.create_actionrow(
+            manage_components.create_button(
+                style = model.ButtonStyle.blurple,
+                label = "d20",
+                custom_id = "roll_d20"
+            ),
+            manage_components.create_button(
+                style = model.ButtonStyle.blurple,
+                label = "d100",
+                custom_id = "roll_d100"
+            )
+        )
+    ]
+
+    async def button_roll_manager(self, ctx: discord_slash.ComponentContext, size: int):
+        await ctx.defer()
+        content = self.parse_roll(params=f"d{str(size)}")
+        await ctx.send(content,components=self.roll_components)
+
+    @cog_ext.cog_component(components = "roll_d4")
+    async def _d4_button_response(self, ctx: discord_slash.ComponentContext):
+        await self.button_roll_manager(ctx,4)
+    @cog_ext.cog_component(components = "roll_d6")
+    async def _d6_button_response(self, ctx: discord_slash.ComponentContext):
+        await self.button_roll_manager(ctx,6)
+    @cog_ext.cog_component(components = "roll_d8")
+    async def _d8_button_response(self, ctx: discord_slash.ComponentContext):
+        await self.button_roll_manager(ctx,8)
+    @cog_ext.cog_component(components = "roll_d10")
+    async def _d10_button_response(self, ctx: discord_slash.ComponentContext):
+        await self.button_roll_manager(ctx,10)
+    @cog_ext.cog_component(components = "roll_d12")
+    async def _d12_button_response(self, ctx: discord_slash.ComponentContext):
+        await self.button_roll_manager(ctx,12)
+    @cog_ext.cog_component(components = "roll_d20")
+    async def _d20_button_response(self, ctx: discord_slash.ComponentContext):
+        await self.button_roll_manager(ctx,20)
+    @cog_ext.cog_component(components = "roll_d100")
+    async def _d100_button_response(self, ctx: discord_slash.ComponentContext):
+        await self.button_roll_manager(ctx,100)
 
 def setup(bot):
     bot.add_cog(DiceRolls(bot))
