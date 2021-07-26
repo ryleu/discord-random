@@ -6,6 +6,7 @@ import traceback
 import discord_slash
 import datetime
 import discord
+import os
 
 # all of this is protected under the license at https://github.com/FourInchKnife/discord-cardic-inspiration/LICENSE
 
@@ -17,13 +18,14 @@ try:
 except FileNotFoundError:
     logging.warning("No directory 'logs/' in the current working directory. Errors will not be saved.")
 
-with open("token.json","r") as file:
-    config = json.loads(file.read())
+try:
+    token = os.environ["BOT_TOKEN"]
+    logging.info("Found BOT_TOKEN in environment variables.")
+except KeyError:
+    with open("token.json","r") as file:
+        token = json.loads(file.read())["token"]
 
-owners = config.pop("owners",None)
-
-me = commands.Bot(commands.when_mentioned,owner_ids=set(owners) if owners else None,
-    activity = discord.CustomActivity(name = "Secretly put this as your status and don’t mention it to me or anyone and we can watch it silently spread."))
+me = commands.Bot(commands.when_mentioned)
 me.slash_handler = discord_slash.SlashCommand(me, sync_commands = True, sync_on_cog_reload = True, override_type = True, delete_from_unused_guilds = True)
 me.allowed_mentions = discord.AllowedMentions.none()
 me.help_command = None
@@ -64,4 +66,4 @@ async def on_command_error(ctx,err):
 async def on_ready():
     print(f"Logged in as {me.user}")
 
-me.run(config["token"])
+me.run(token)
