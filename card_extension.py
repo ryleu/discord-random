@@ -180,12 +180,13 @@ class CardDeck(commands.Cog):
         # if there isn't one then fail
         if deck == None or deck.cards == []:
             await ctx.send("There are no cards on this deck. Generate a new one with `/deck new`", hidden = True)
-
         else:
             await ctx.defer(edit_origin=True)
             cards = await deck.draw()
             if cards == []:
                 await ctx.send("Something went wrong. Please try again.", hidden = True)
+            if private and not deck.allow_private:
+                await ctx.send("This deck does not allow private drawing.", hidden = True)
             else:
                 card = cards[0]
                 await self.update_card_amount(ctx)
