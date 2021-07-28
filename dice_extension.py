@@ -87,7 +87,7 @@ class DiceRolls(commands.Cog):
             style = model.ButtonStyle.blurple,
             label = "d"+x,
             custom_id = "roll_d"+x
-        ) for x in ["4","6","8","10","12","20","100"]]
+        ) for x in ["4","6","8","10","12","20","100"]])
 
     async def button_roll_manager(self, ctx: discord_slash.ComponentContext, size: int):
         await ctx.defer(edit_origin=True)
