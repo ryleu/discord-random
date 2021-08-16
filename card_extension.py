@@ -14,6 +14,8 @@ class  Card():
     def __str__(self):
         """Returns the type of card in the format {value} of {suit}."""
         return f"{self.valChar} of {self.suit}s"
+    def __dict__(self):
+        return {"suit": self.suit, "value": self.value}
     @property
     def valChar(self):
         return ['?', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'][self.value]
@@ -28,6 +30,9 @@ class  Card():
                 center = (self.valChar if len(self.valChar) > 1 else self.valChar + " "),
                 dash = "-" if len(self.valChar) == 1 else ""
             )
+    @classmethod
+    def fromDict(cls, data):
+        return cls(data["suit"], data["value"])
 
 class Deck():
     def __init__(self,*,shuffled = True,allow_private = False):
@@ -35,6 +40,9 @@ class Deck():
         self.cards = []
         self.shuffled = shuffled
         self.allow_private = allow_private
+    def __dict__(self):
+        dictCards = [ dict(card) for card in self.cards ]
+        return {"shuffled": self.shuffled, "allow_private": self.allow_private, "cards": dictCards}
     def populate(self,*,suits = ["heart","club","diamond","spade"],values = range(1,14),allow_private = None):
         if allow_private != None:
             self.allow_private = allow_private
@@ -64,6 +72,11 @@ class Deck():
     @classmethod
     def full(cls,*args,**kwargs):
         return cls(*args, **kwargs).populate()
+    @classmethod
+    def fromDict(cls, data):
+        deck = cls(shuffled = data["shuffled"], allow_private = data["allow_private"])
+        deck.cards = [ Card.fromDict(card) for card in data["cards"] ]
+        return deck
 
 class CardDeck(commands.Cog):
     def __init__(self,bot):
@@ -89,10 +102,13 @@ class CardDeck(commands.Cog):
         await ctx.defer(hidden = private)
 
         # try to grab the deck for the guild
-        deck = self.bot.decks.get(ctx.channel.guild.id,None)
+        deck = self.bot.decks.get(ctx.guild_id,None)
 
-        # if there isn't one then fail
-        if deck == None or deck.cards == []:
+        # if there isn't one then make one
+        if deck == None:
+            self.bot.decks[ctx.guild_id] = Deck.full()
+        # if it's empty then fail
+        if deck.cards == []:
             parsed = "There are no cards on this deck. Generate a new one with `/deck new`"
 
         elif private and not deck.allow_private:
@@ -148,7 +164,7 @@ class CardDeck(commands.Cog):
             actionRow = manage_components.create_actionrow(*buttons)
             deck = Deck.full(allow_private = allow_private) #create a new, full deck
             #grabs the correct deck and fills it
-            self.bot.decks[ctx.channel.guild.id] = deck
+            self.bot.decks[ctx.guild_id] = deck
             await ctx.send(f"**Successfully generated a new deck.**\n_{deck.length}_ card(s) remaining.", components = [actionRow])
 
     @cog_ext.cog_subcommand(base = "deck", name = "cards")
@@ -156,7 +172,7 @@ class CardDeck(commands.Cog):
         """Checks the amount of cards left in the deck."""
         await ctx.defer()
         #get the deck
-        deck = self.bot.decks.get(ctx.channel.guild.id,None)
+        deck = self.bot.decks.get(ctx.guild_id,None)
         #check if it's empty
         if deck == None or not deck.length:
             await ctx.send("The deck is empty. Generate a new one with `/deck new`")
@@ -175,7 +191,7 @@ class CardDeck(commands.Cog):
         """Draws a card from the server specific deck."""
 
         # try to grab the deck for the guild
-        deck = self.bot.decks.get(ctx.channel.guild.id,None)
+        deck = self.bot.decks.get(ctx.guild_id,None)
 
         # if there isn't one then fail
         if deck == None or deck.cards == []:
@@ -195,7 +211,7 @@ class CardDeck(commands.Cog):
     async def update_card_amount(self,ctx: discord_slash.ComponentContext):
         """Updates the message with the amount of cards left in the deck."""
         #get the deck
-        deck = self.bot.decks.get(ctx.channel.guild.id,None)
+        deck = self.bot.decks.get(ctx.guild_id,None)
         #check if it's empty
         if deck == None or not deck.length:
             toEdit = "The deck is empty. Generate a new one with `/deck new`"
