@@ -107,6 +107,7 @@ class CardDeck(commands.Cog):
         # if there isn't one then make one
         if deck == None:
             self.bot.decks[ctx.guild_id] = Deck.full()
+            deck = self.bot.decks[ctx.guild_id]
         # if it's empty then fail
         if deck.cards == []:
             parsed = "There are no cards on this deck. Generate a new one with `/deck new`"
