@@ -8,7 +8,7 @@ import datetime
 import discord
 import os
 
-# all of this is protected under the license at https://github.com/FourInchKnife/discord-cardic-inspiration/LICENSE
+# all of this is protected under the license at https://github.com/ryleu/discord-cardic-inspiration/LICENSE
 
 formatTime = lambda time: str(time)[:str(time).index(".")].replace(":","-").replace(" ","_")
 try:
