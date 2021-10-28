@@ -56,6 +56,7 @@ def main():
     me.load_extension("card_extension")
     me.load_extension("dice_extension")
     me.load_extension("miscibility_extension")
+    me.load_extension("info_extension")
 
     me.slash_handler.add_slash_command(rlext)
 
