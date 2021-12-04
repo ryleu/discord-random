@@ -1,13 +1,14 @@
 import logging
 import secrets
 
+import discord
 import discord_slash
 from discord.ext import commands
 from discord_slash import cog_ext, model
 from discord_slash.utils import manage_commands, manage_components
 
 
-class Card():
+class Card:
     def __init__(self, suit, value):
         """Initializes the card with a suit and a value."""
         self.suit = suit
@@ -15,30 +16,30 @@ class Card():
 
     def __str__(self):
         """Returns the type of card in the format {value} of {suit}."""
-        return f"{self.valChar} of {self.suit}s"
+        return f"{self.val_char} of {self.suit}s"
 
     def __dict__(self):
         return {"suit": self.suit, "value": self.value}
 
     @property
-    def valChar(self):
+    def val_char(self):
         return ['?', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'][self.value]
 
     @property
-    def suitChar(self):
+    def suit_char(self):
         return {"heart": "♥️", "club": "♣️", "diamond": "♦️", "spade": "♠️"}[self.suit]
 
     @property
     def art(self):
         return "```\n{suit}----{dash}{value}\n|     |\n|  {center} |\n|     |\n{value}{dash}----{suit}\n```".format(
-            suit=self.suitChar,
-            value=self.valChar,
-            center=(self.valChar if len(self.valChar) > 1 else self.valChar + " "),
-            dash="-" if len(self.valChar) == 1 else ""
+            suit=self.suit_char,
+            value=self.val_char,
+            center=(self.val_char if len(self.val_char) > 1 else self.val_char + " "),
+            dash="-" if len(self.val_char) == 1 else ""
         )
 
     @classmethod
-    def fromDict(cls, data):
+    def from_dict(cls, data):
         return cls(data["suit"], data["value"])
 
 
@@ -90,9 +91,9 @@ class Deck:
         return cls(*args, **kwargs).populate()
 
     @classmethod
-    def fromDict(cls, data):
+    def from_dict(cls, data):
         deck = cls(shuffled=data["shuffled"], allow_private=data["allow_private"])
-        deck.cards = [Card.fromDict(card) for card in data["cards"]]
+        deck.cards = [Card.from_dict(card) for card in data["cards"]]
         return deck
 
 
@@ -103,6 +104,7 @@ class CardDeck(commands.Cog):
         try:
             if not isinstance(bot.decks, dict):
                 logging.error("bot.decks should be a dict, but it got overwritten. Fix this.")
+                bot.decks = {}
         except AttributeError:
             logging.info("bot.decks doesn't exist.")
             bot.decks = {}
@@ -195,7 +197,10 @@ class CardDeck(commands.Cog):
         deck = self.bot.decks.get(ctx.guild_id, None)
         # check if it's empty
         if deck is None or not deck.length:
-            await ctx.send("The deck is empty. Generate a new one with `/deck new`")
+            # create an embed saying there are no cards
+            embed = discord.Embed(title="No cards left", description="The deck is empty. Generate a new one with "
+                                                                     "`/deck new`", color=0xFF0000)
+            await ctx.send(embed=embed)
         else:
             await ctx.send(f"There are {str(deck.length)} card(s) left.")
 
@@ -242,3 +247,10 @@ class CardDeck(commands.Cog):
 
 def setup(bot):
     bot.add_cog(CardDeck(bot))
+    try:
+        if not isinstance(bot.decks, dict):
+            logging.info("bot.decks isn't correct, creating an empty one.")
+            bot.decks = {}
+    except AttributeError:
+        logging.info("bot.decks doesn't exist, creating an empty one.")
+        bot.decks = {}

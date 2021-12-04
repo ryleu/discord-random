@@ -63,7 +63,7 @@ class DiceRolls(commands.Cog):
             description="The die size",
             option_type=str,
             required=True,
-            choices=["d4", "d6", "d8", "d10", "d12", "d20", "d100"]
+            choices=["d2", "d4", "d6", "d8", "d10", "d12", "d20", "d100"]
         ),
         manage_commands.create_option(
             name="amount",
@@ -82,7 +82,8 @@ class DiceRolls(commands.Cog):
         """Rolls dice (but for noobs)."""
         private = kwargs.pop("private", None)
         await ctx.defer(hidden=private)
-        params = str(kwargs.pop("amount", 1)) + kwargs.pop("size")
+        size = kwargs.pop("size")
+        params = str(kwargs.pop("amount", 1)) + size
         await ctx.send(parse_roll(params=params, **kwargs), hidden=private, components=self.roll_components)
 
     roll_components = manage_components.spread_to_rows(
@@ -90,7 +91,7 @@ class DiceRolls(commands.Cog):
             style=model.ButtonStyle.blurple,
             label="d" + x,
             custom_id="roll_d" + x
-        ) for x in ["4", "6", "8", "10", "12", "20", "100"]])
+        ) for x in ["2", "4", "6", "8", "10", "12", "20", "100"]])
 
     async def button_roll_manager(self, ctx: discord_slash.ComponentContext, size: int):
         await ctx.defer(edit_origin=True)
@@ -98,6 +99,10 @@ class DiceRolls(commands.Cog):
 1d{str(size)} = `{secrets.randbelow(size) + 1}`"""
         await ctx.edit_origin(content=ctx.origin_message.content, components=[])
         await ctx.send(content, components=self.roll_components)
+
+    @cog_ext.cog_component(components="roll_d2")
+    async def _d2_button_response(self, ctx: discord_slash.ComponentContext):
+        await self.button_roll_manager(ctx, 2)
 
     @cog_ext.cog_component(components="roll_d4")
     async def _d4_button_response(self, ctx: discord_slash.ComponentContext):
