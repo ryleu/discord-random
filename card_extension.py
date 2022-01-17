@@ -202,7 +202,9 @@ class CardDeck(commands.Cog):
                                                                      "`/deck new`", color=0xFF0000)
             await ctx.send(embed=embed)
         else:
-            await ctx.send(f"There are {str(deck.length)} card(s) left.")
+            embed = discord.Embed(title="Card count", description=f"There are {str(deck.length)} card(s) left.",
+                                  color=0x0000FF)
+            await ctx.send(embed=embed)
 
     @cog_ext.cog_component(components="draw_button")
     async def _draw_button_response(self, ctx: discord_slash.ComponentContext):
