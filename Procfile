@@ -1,1 +1,1 @@
-worker: python3 -m poetry run run.py
+worker: python3 -m poetry run ./run.py
