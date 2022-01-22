@@ -181,34 +181,28 @@ class CardDeck(commands.Cog):
     ])
     async def _slash_deck_new(self, ctx: discord_slash.SlashContext, allow_private: bool = False):
         """Generates / regenerates the server specific deck."""
-        try:
-            if not ctx.author.guild_permissions.manage_messages:
-                return await ctx.send("You need server-wide manage messages to do this.", hidden=True)
-        except AttributeError:
-            await ctx.send("I need to be in a server with the bot scope to do this.", hidden=True)
-        else:
-            await ctx.defer()
-            buttons = [
+        await ctx.defer()
+        buttons = [
+            manage_components.create_button(
+                style=model.ButtonStyle.green,
+                label="Draw",
+                custom_id="draw_button"
+            )
+        ]
+        if allow_private:
+            buttons.append(
                 manage_components.create_button(
-                    style=model.ButtonStyle.green,
-                    label="Draw",
-                    custom_id="draw_button"
+                    style=model.ButtonStyle.blue,
+                    label="Draw Privately",
+                    custom_id="draw_button_private"
                 )
-            ]
-            if allow_private:
-                buttons.append(
-                    manage_components.create_button(
-                        style=model.ButtonStyle.blue,
-                        label="Draw Privately",
-                        custom_id="draw_button_private"
-                    )
-                )
-            action_row = manage_components.create_actionrow(*buttons)
-            deck = Deck.full(allow_private=allow_private)  # create a new, full deck
-            # grabs the correct deck and fills it
-            self.bot.decks[ctx.guild_id] = deck
-            await ctx.send(f"**Successfully generated a new deck.**\n_{deck.length}_ card(s) remaining.",
-                           components=[action_row])
+            )
+        action_row = manage_components.create_actionrow(*buttons)
+        deck = Deck.full(allow_private=allow_private)  # create a new, full deck
+        # grabs the correct deck and fills it
+        self.bot.decks[ctx.guild_id] = deck
+        await ctx.send(f"**Successfully generated a new deck.**\n_{deck.length}_ card(s) remaining.",
+                       components=[action_row])
 
         self.json_write_out()
 
