@@ -119,12 +119,14 @@ class CardDeck(commands.Cog):
 
     def json_read_in(self):
         self.bot.decks = {}
-        with open("decks.json", "r") as file:
-            try:
+        data = {}
+        try:
+            with open("decks.json", "r") as file:
                 data = json.loads(file.read())
-            except json.JSONDecodeError as e:
-                logging.error(e)
-                data = {}
+        except json.JSONDecodeError as e:
+            logging.error(e)
+        except FileNotFoundError:
+            open("decks.json", "x").close()
         for entry in data.keys():
             self.bot.decks[entry] = Deck.from_dict(data[entry])
 
