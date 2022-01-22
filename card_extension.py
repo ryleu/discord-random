@@ -52,7 +52,7 @@ class Deck:
         self.allow_private = allow_private
 
     def __dict__(self):
-        dict_cards = [dict(card) for card in self.cards]
+        dict_cards = [card.__dict__() for card in self.cards]
         return {"shuffled": self.shuffled, "allow_private": self.allow_private, "cards": dict_cards}
 
     def populate(self, *, suits=None, values=range(1, 14), allow_private=None):
@@ -113,9 +113,9 @@ class CardDeck(commands.Cog):
     def json_write_out(self):
         data = {}
         for deck in self.bot.decks.keys():
-            data[deck] = dict(self.bot.decks[deck])
+            data[deck] = self.bot.decks[deck].__dict__()
         with open("decks.json", "w") as file:
-            file.write(json.dumps(data))
+            file.write(json.dumps(data).replace(" ", ""))
 
     def json_read_in(self):
         self.bot.decks = {}
@@ -128,7 +128,7 @@ class CardDeck(commands.Cog):
         except FileNotFoundError:
             open("decks.json", "x").close()
         for entry in data.keys():
-            self.bot.decks[entry] = Deck.from_dict(data[entry])
+            self.bot.decks[int(entry)] = Deck.from_dict(data[entry])
 
     @cog_ext.cog_slash(name="draw", options=[
         manage_commands.create_option(
@@ -224,6 +224,7 @@ class CardDeck(commands.Cog):
             embed = discord.Embed(title="Card count", description=f"There are {str(deck.length)} card(s) left.",
                                   color=0x0000FF)
             await ctx.send(embed=embed)
+        print(self.bot.decks, deck)
 
     @cog_ext.cog_component(components="draw_button")
     async def _draw_button_response(self, ctx: discord_slash.ComponentContext):
