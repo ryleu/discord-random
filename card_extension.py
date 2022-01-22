@@ -6,6 +6,7 @@ import discord_slash
 from discord.ext import commands
 from discord_slash import cog_ext, model
 from discord_slash.utils import manage_commands, manage_components
+import json
 
 
 class Card:
@@ -99,7 +100,7 @@ class Deck:
 
 class CardDeck(commands.Cog):
     def __init__(self, bot):
-        """Cog that contains all of the commands for drawing from a deck."""
+        """Cog that contains all the commands for drawing from a deck."""
         self.bot = bot
         try:
             if not isinstance(bot.decks, dict):
@@ -108,6 +109,24 @@ class CardDeck(commands.Cog):
         except AttributeError:
             logging.info("bot.decks doesn't exist.")
             bot.decks = {}
+
+    def json_write_out(self):
+        data = {}
+        for deck in self.bot.decks.keys():
+            data[deck] = dict(self.bot.decks[deck])
+        with open("decks.json", "w") as file:
+            file.write(json.dumps(data))
+
+    def json_read_in(self):
+        self.bot.decks = {}
+        with open("decks.json", "r") as file:
+            try:
+                data = json.loads(file.read())
+            except json.JSONDecodeError as e:
+                logging.error(e)
+                data = {}
+        for entry in data.keys():
+            self.bot.decks[entry] = Deck.from_dict(data[entry])
 
     @cog_ext.cog_slash(name="draw", options=[
         manage_commands.create_option(
@@ -143,6 +162,8 @@ class CardDeck(commands.Cog):
                 card = cards[0]
                 parsed = f"{ctx.author.mention} drew **{str(card)}**\n{card.art}"
         await ctx.send(parsed, hidden=private)
+
+        self.json_write_out()
 
     @cog_ext.cog_subcommand(base="deck", name="new", options=[
         manage_commands.create_option(
@@ -188,6 +209,8 @@ class CardDeck(commands.Cog):
             self.bot.decks[ctx.guild_id] = deck
             await ctx.send(f"**Successfully generated a new deck.**\n_{deck.length}_ card(s) remaining.",
                            components=[action_row])
+
+        self.json_write_out()
 
     @cog_ext.cog_subcommand(base="deck", name="cards")
     async def _slash_deck_cards(self, ctx: discord_slash.SlashContext):
@@ -235,6 +258,8 @@ class CardDeck(commands.Cog):
                 await self.update_card_amount(ctx)
                 await ctx.send(f"{ctx.author.mention} drew **{str(card)}**\n{card.art}", hidden=private)
 
+        self.json_write_out()
+
     async def update_card_amount(self, ctx: discord_slash.ComponentContext):
         """Updates the message with the amount of cards left in the deck."""
         # get the deck
@@ -248,11 +273,6 @@ class CardDeck(commands.Cog):
 
 
 def setup(bot):
+    cog = CardDeck(bot)
     bot.add_cog(CardDeck(bot))
-    try:
-        if not isinstance(bot.decks, dict):
-            logging.info("bot.decks isn't correct, creating an empty one.")
-            bot.decks = {}
-    except AttributeError:
-        logging.info("bot.decks doesn't exist, creating an empty one.")
-        bot.decks = {}
+    cog.json_read_in()
