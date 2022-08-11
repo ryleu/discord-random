@@ -17,27 +17,18 @@ class Card:
 
     def __str__(self):
         """Returns the type of card in the format {value} of {suit}."""
-        return f"{self.val_char} of {self.suit}s"
+        return f"{self.val_string} of {self.suit}s"
 
     def __dict__(self):
         return {"suit": self.suit, "value": self.value}
 
     @property
-    def val_char(self):
-        return ['?', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'][self.value]
+    def val_string(self):
+        return ['?', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11-JACK', '12-QUEEN', '13-KING'][self.value]
 
     @property
-    def suit_char(self):
-        return {"heart": "♥️", "club": "♣️", "diamond": "♦️", "spade": "♠️"}[self.suit]
-
-    @property
-    def art(self):
-        return "```\n{suit}----{dash}{value}\n|     |\n|  {center} |\n|     |\n{value}{dash}----{suit}\n```".format(
-            suit=self.suit_char,
-            value=self.val_char,
-            center=(self.val_char if len(self.val_char) > 1 else self.val_char + " "),
-            dash="-" if len(self.val_char) == 1 else ""
-        )
+    def url(self):
+        return f"https://ryleu.me/png-card-mirror/{self.suit.upper()}-{self.val_string}.png"
 
     @classmethod
     def from_dict(cls, data):
@@ -149,21 +140,32 @@ class CardDeck(commands.Cog):
         if deck is None:
             self.bot.decks[ctx.guild_id] = Deck.full()
             deck = self.bot.decks[ctx.guild_id]
+
+        failed = False
+
         # if it's empty then fail
         if not deck.cards:
             parsed = "There are no cards on this deck. Generate a new one with `/deck new`"
+            failed = True
 
         elif private and not deck.allow_private:
             parsed = "This deck does not allow private drawing."
+            failed = True
 
         else:
             cards = await deck.draw()
             if not cards:
                 parsed = "Something went wrong. Please try again."
+                failed = True
             else:
-                card = cards[0]
-                parsed = f"{ctx.author.mention} drew **{str(card)}**\n{card.art}"
-        await ctx.send(parsed, hidden=private)
+                parsed = cards[0]
+
+        embed = discord.Embed(title="Card Draw", description=str(parsed), color=0xFF0000 if failed else 0x0000FF)
+        if type(parsed) is Card:
+            embed.set_image(url=parsed.url)
+        embed.set_footer(icon_url=ctx.author.avatar_url, text=ctx.author.display_name)
+
+        await ctx.send(embed=embed, hidden=private)
 
         self.json_write_out()
 
@@ -203,8 +205,11 @@ class CardDeck(commands.Cog):
         deck = Deck.full(allow_private=allow_private)  # create a new, full deck
         # grabs the correct deck and fills it
         self.bot.decks[ctx.guild_id] = deck
-        await ctx.send(f"**Successfully generated a new deck.**\n_{deck.length}_ card(s) remaining.",
-                       components=[action_row])
+
+        embed = discord.Embed(title="Card Deck", description=f"**Successfully generated a new deck.**\n_{deck.length}_ "
+                                                             f"card(s) remaining.", color=0x0000FF)
+
+        await ctx.send(embed=embed, components=[action_row])
 
         self.json_write_out()
 
@@ -253,7 +258,12 @@ class CardDeck(commands.Cog):
             else:
                 card = cards[0]
                 await self.update_card_amount(ctx)
-                await ctx.send(f"{ctx.author.mention} drew **{str(card)}**\n{card.art}", hidden=private)
+
+                embed = discord.Embed(title="Card Draw", description=str(card), color=0x0000FF)
+                embed.set_image(url=card.url)
+                embed.set_footer(icon_url=ctx.author.avatar_url, text=ctx.author.display_name)
+
+                await ctx.send(embed=embed, hidden=private)
 
         self.json_write_out()
 
@@ -266,7 +276,10 @@ class CardDeck(commands.Cog):
             to_edit = "The deck is empty. Generate a new one with `/deck new`"
         else:
             to_edit = f"_{deck.length}_ card(s) remaining."
-        await ctx.edit_origin(content=to_edit)
+
+        embed = discord.Embed(title="Card Deck", description=to_edit, color=0x0000FF)
+
+        await ctx.edit_origin(embed=embed)
 
 
 def setup(bot):
