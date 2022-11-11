@@ -63,7 +63,7 @@ class DiceRolls(commands.Cog):
             description="The die size",
             option_type=str,
             required=True,
-            choices=["d2", "d4", "d6", "d8", "d10", "d12", "d20", "d100"]
+            choices=("d2", "d4", "d6", "d8", "d10", "d12", "d20", "d100")
         ),
         manage_commands.create_option(
             name="amount",
@@ -91,7 +91,7 @@ class DiceRolls(commands.Cog):
             style=model.ButtonStyle.blurple,
             label="d" + x,
             custom_id="roll_d" + x
-        ) for x in ["2", "4", "6", "8", "10", "12", "20", "100"]])
+        ) for x in ("2", "4", "6", "8", "10", "12", "20", "100")])
 
     async def button_roll_manager(self, ctx: discord_slash.ComponentContext, size: int):
         await ctx.defer(edit_origin=True)
