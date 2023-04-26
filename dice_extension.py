@@ -15,7 +15,7 @@ def parse_roll(params, *, comment=None, adv=d20.AdvType.NONE):
     except d20.errors.TooManyRolls:
         return "You can't roll more than 1000 total dice."
     except d20.errors.RollSyntaxError as err:
-        return f"""{str(err)}```\n{params}\n{(err.col - 1) * " " + len(err.got) * "^"}\n```"""
+        return f"""{str(err)}```\n{params.replace("`","\\`")}\n{(err.col - 1) * " " + len(err.got) * "^"}\n```"""
     except Error as err:
         return str(err)
 
