@@ -1,15 +1,14 @@
 [tool.poetry]
-name = "discord-cardic-inspiration"
-version = "0.1.0"
+name = "discord-random"
+version = "1.0.0"
 description = ""
-authors = ["ryleu <<>>"]
+authors = ["ryleu <riley@ryleu.me>"]
 license = "gpl-3"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.11"
 d20 = "^1.1.2"
-"discord.py" = "^1.7.3"
-discord-py-interactions = "3.x.x"
+discord-py-interactions = "^5.10.0"
 
 [tool.poetry.dev-dependencies]
 
