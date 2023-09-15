@@ -31,8 +31,7 @@ async def info(ctx: interactions.SlashContext):
     # Add the source code link to the embed
     embed.add_field(
         name="Source Code",
-        value="[View on GitHub]("
-        "https://github.com/ryleu/discord-cardic-inspiration)",
+        value="[View on GitHub](https://github.com/ryleu/discord-random)",
     )
     # Add the invite link to the embed
     embed.add_field(
@@ -44,7 +43,7 @@ async def info(ctx: interactions.SlashContext):
     # Add the syntax link to the embed
     embed.add_field(
         name="Syntax",
-        value="[View the `/roll` syntax](" "https://github.com/avrae/d20#dice-syntax)",
+        value="[View the `/roll` syntax](https://github.com/avrae/d20#dice-syntax)",
     )
     # Add the bot author to the embed
     embed.set_footer(text="Created by ryleu")
@@ -73,14 +72,13 @@ async def roll(ctx: interactions.SlashCommand, roll_string: str):
     except Exception as err:
         roll_result = str(err)
 
-    await ctx.send(str(roll_result), ephemeral=True)
+    await ctx.send(roll_result, ephemeral=True)
 
 
 @interactions.slash_command(
     name="init_channel", description="Set up a channel for rolling dice with buttons."
 )
 async def init_channel(ctx: interactions.SlashContext):
-    print(ctx.__dict__)
     buttons = interactions.spread_to_rows(
         *[
             interactions.Button(
