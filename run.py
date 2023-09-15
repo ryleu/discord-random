@@ -15,12 +15,12 @@ if not (token):
         token = file.read().strip()
 
 
-@bot.listen()
+@interactions.listen()
 async def on_startup():
     print("Bot is ready!")
 
 
-@bot.command(name="info", description="Send information about this bot.")
+@interactions.slash_command(name="info", description="Send information about this bot.")
 async def info(ctx: interactions.SlashContext):
     """Displays the info of the bot."""
     await ctx.defer()
@@ -53,7 +53,7 @@ async def info(ctx: interactions.SlashContext):
     await ctx.send(embed=embed)
 
 
-@bot.command(
+@interactions.slash_command(
     name="roll",
     description="Rolls dice using d20's roll string format.",
     options=[
@@ -76,7 +76,7 @@ async def roll(ctx: interactions.SlashCommand, roll_string: str):
     await ctx.send(str(roll_result), ephemeral=True)
 
 
-@bot.command(
+@interactions.slash_command(
     name="init_channel", description="Set up a channel for rolling dice with buttons."
 )
 async def init_channel(ctx: interactions.SlashContext):
@@ -92,7 +92,7 @@ async def init_channel(ctx: interactions.SlashContext):
     await ctx.send("Press a button to roll a die:", components=buttons)
 
 
-@bot.listen()
+@interactions.listen()
 async def button_pressed(event: interactions.events.ButtonPressed):
     ctx = event.ctx
     number = int(ctx.custom_id)
