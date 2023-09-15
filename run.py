@@ -8,9 +8,9 @@ import random
 bot = interactions.Client()
 
 # get the token. first try envars then try token.txt
-token = os.environ.get("TOKEN", False)
+token = os.environ.get("TOKEN", "")
 
-if not (token):
+if not token:
     with open("token.txt") as file:
         token = file.read().strip()
 
@@ -61,7 +61,7 @@ async def info(ctx: interactions.SlashContext):
         )
     ],
 )
-async def roll(ctx: interactions.SlashCommand, roll_string: str):
+async def roll(ctx: interactions.SlashContext, roll_string: str):
     try:
         roll_result = str(d20.roll(roll_string))
     except d20.errors.TooManyRolls:
