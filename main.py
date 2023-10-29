@@ -4,15 +4,17 @@ import interactions
 import os
 import d20
 import random
+import json
 
 bot = interactions.Client()
 
-# get the token. first try envars then try token.txt
-token = os.environ.get("TOKEN", "")
-
-if not token:
-    with open("token.txt") as file:
-        token = file.read().strip()
+if os.path.exists("config.json"):
+    with open("config.json") as file:
+        config = json.loads(file.read())
+else:
+    config = {
+        "token": os.environ["TOKEN"],
+    }
 
 
 @interactions.listen()
@@ -97,4 +99,4 @@ async def button_pressed(event: interactions.events.ButtonPressed):
     await ctx.send(f"d{number} = `{random.randint(1, number)}`", ephemeral=True)
 
 
-bot.start(token)
+bot.start(config["token"])
