@@ -74,7 +74,7 @@ async def roll(ctx: interactions.SlashContext, roll_string: str):
     except Exception as err:
         roll_result = str(err)
 
-    await ctx.send(roll_result, ephemeral=True)
+    await ctx.send(roll_result, ephemeral=False)
 
 
 @interactions.slash_command(
@@ -96,7 +96,7 @@ async def init_channel(ctx: interactions.SlashContext):
 async def button_pressed(event: interactions.events.ButtonPressed):
     ctx = event.ctx
     number = int(ctx.custom_id)
-    await ctx.send(f"d{number} = `{random.randint(1, number)}`", ephemeral=True)
+    await ctx.send(f"d{number} = `{random.randint(1, number)}`", ephemeral=False)
 
 
 bot.start(config["token"])
